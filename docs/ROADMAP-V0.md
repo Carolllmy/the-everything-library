@@ -26,7 +26,7 @@ These were settled early and shape everything else.
 
 **Browse layout: two-column Pinterest-style masonry.** Framer's horizontal carousel and per-section rows were replaced, at Carol's request, with a single two-column masonry feed of tiles with varied heights. Category links filter this feed in place.
 
-**Tiles are intentionally blank for now.** Thumbnails are empty dark placeholders while the skeleton is being iterated. The live widget previews exist in the codebase (each widget's exact code renders in an iframe inside the detail modal) but are not shown in the feed tiles yet.
+**Tiles show live previews** (decided June 12, 2026, closing 7.1). Each feed tile runs the widget's exact code in a sandboxed, lazy-loaded iframe — the same `previewDoc()` used by the detail modal. `pointer-events:none` keeps the tile clickable; srcdoc is set only when the tile nears the viewport.
 
 ## 3. Current state of the build
 
@@ -83,27 +83,27 @@ Breakpoints: ≤1000px hides center nav links; ≤560px collapses masonry to one
 V0 is the complete public launch on Carol's personal website. No V1/V2 split yet; everything below is V0.
 
 ### 7.1 Content & tiles
-- [ ] Decide tile thumbnail treatment (live iframe previews per tile, static renders/screenshots, or stylized covers) — previews existed in the first build and can be re-enabled
-- [ ] Fill all tiles in the masonry feed accordingly
-- [ ] Grow the library beyond the initial 10 (request log + Carol's own ideas drive the backlog)
-- [ ] Write per-widget usage notes if needed (e.g., customizing the typewriter phrase list, count-up targets)
+- [x] Decide tile thumbnail treatment — **live iframe previews per tile**, lazy-loaded via IntersectionObserver (srcdoc set only when a tile nears the viewport), sandboxed, pointer-events disabled so the tile stays clickable
+- [x] Fill all tiles in the masonry feed accordingly
+- [x] Grow the library beyond the initial 10 — now **20 widgets**: added Shimmer Button, Border Beam Button, Scramble Text, Wave Text, Glass Card, Star Rating, Bubble Slider, plus a new **Loaders** category (Orbit Loader, Skeleton Shimmer, Progress Ring)
+- [x] Per-widget usage notes — optional `notes` field rendered as a "Customize:" line in the modal (magnetic, typewriter, count-up, scramble, wave, star rating, bubble slider, progress ring)
 
 ### 7.2 Site polish
-- [ ] Hero/branding pass: confirm "Library" vs "TheEverythingLibrary" as the h1, subtitle copy, brand mark
-- [ ] Decide which top-nav links are real for launch (Docs, Showcase, Community, Support are placeholders) and what "Get updates" does
-- [ ] Featured/curation concept inside the masonry feed, if wanted
-- [ ] Accessibility pass: keyboard navigation for tiles and modal, focus states, alt/aria labels, reduced-motion support
-- [ ] Mobile QA on a real device (touch interactions inside widget previews especially)
+- [x] Hero/branding: kept **"Library"** as the h1 (matches the Framer skeleton; the full name lives in the nav brand), subtitle unchanged
+- [x] Top-nav links: trimmed to real ones — Widgets (home), Docs (→ GitHub README), Request a widget (→ focuses search); "Get updates" replaced with "Star on GitHub"; GitHub links to the repo
+- [ ] Featured/curation concept inside the masonry feed — deferred, revisit when the library is larger
+- [x] Accessibility pass: tiles are keyboard-operable (role=button, Enter/Space), modal is a focus-trapped aria dialog that restores focus on close, visible :focus-visible states, aria labels on icons/inputs/toast, prefers-reduced-motion respected on the site AND inside every preview iframe, `--dim-2` bumped #666→#777 for WCAG AA
+- [x] Mobile QA in emulated viewport (375px): single-column masonry, nav crowding fixed (pill hidden ≤560px, category row no longer collides with the search icon) — *still worth a 2-minute check on Carol's real phone*
 
 ### 7.3 Request pipeline
-- [ ] Create the free Formspree form and paste the endpoint into `FORMSPREE_ENDPOINT` in index.html (until then, requests from visitors' browsers only reach their own localStorage — email is required for requests to actually reach Carol once the site is public)
-- [ ] Test the email flow end-to-end after deploying
+- [ ] **Formspree — the one remaining manual step.** Create the free form at formspree.io (needs Carol's email login), paste the endpoint into `FORMSPREE_ENDPOINT` in index.html, push
+- [ ] Test the email flow end-to-end after the endpoint is live (the localStorage + admin-view path is verified working)
 
 ### 7.4 Distribution
-- [ ] Create a GitHub repo (public, so people can use everything for free) with a README and a license choice (MIT is the natural fit for "free to use, share, remix")
-- [ ] Enable GitHub Pages for free hosting
-- [ ] Integrate with/link from Carol's personal website
-- [ ] Optional: per-widget anchors/URLs so individual widgets are shareable
+- [x] Public GitHub repo with README + MIT LICENSE: https://github.com/Carolllmy/the-everything-library
+- [x] GitHub Pages enabled: https://carolllmy.github.io/the-everything-library/
+- [x] Linked from Carol's personal website (Carol-Playhouse project row #14)
+- [x] Per-widget anchors: `#widget-id` URLs open the widget's modal directly; a "Copy link" button in the modal shares them
 
 ### 7.5 Known technical notes & risks
 - localStorage admin log is per-browser: it's a great dev tool but not a collection mechanism for public traffic — Formspree (7.3) is the real pipeline
@@ -152,17 +152,39 @@ How to judge whether V0 is well implemented. Score each criterion 0–4 using th
 | 35–54 | Skeleton — structure is right, substance incomplete |
 | < 35 | Prototype — keep iterating before showing anyone |
 
-### Current self-assessment (June 12, 2026)
+### Self-assessment history
 
-Scored honestly against the build as it stands: visual fidelity 3 (×5 = 15), widget quality 3 (×5 = 15), search 3 (×4 = 12), copy-paste 3 (×3 = 9), request pipeline 2 — Formspree not connected (×3 = 6), performance 3 (×2 = 6), accessibility 1 — Escape key only (×2 = 2), maintainability 3 (×2 = 6), distribution 0 — not deployed (×2 = 0), mobile 2 — breakpoints exist, untested on device (×2 = 4). **Total: 75/100 — Launchable**, with accessibility and distribution as the two cheapest big wins. Note the blank tiles cap criterion 1 at 3 until the thumbnail treatment (7.1) is decided.
+**June 12, 2026 (morning, pre-V0 push):** visual fidelity 3 (×5 = 15), widget quality 3 (×5 = 15), search 3 (×4 = 12), copy-paste 3 (×3 = 9), request pipeline 2 — Formspree not connected (×3 = 6), performance 3 (×2 = 6), accessibility 1 — Escape key only (×2 = 2), maintainability 3 (×2 = 6), distribution 0 — not deployed (×2 = 0), mobile 2 — breakpoints exist, untested on device (×2 = 4). **Total: 75/100 — Launchable.**
+
+**June 12, 2026 (after V0 implementation):** re-scored against the deployed build, verified end-to-end in a headless browser (search battery, keyboard path, focus trap, deep links, request flow, admin view, mobile viewport, zero console errors):
+
+| # | Criterion | Score | Why not higher |
+|---|---|---|---|
+| 1 | Visual fidelity | 3 ×5 = 15 | Live tiles unblock this, but a true side-by-side designer pass against framer.com hasn't been redone since |
+| 2 | Widget quality | 3 ×5 = 15 | All 20 verified rendering, conventions hold; not yet stress-tested pasted into a busy light-mode site |
+| 3 | Search quality | 4 ×4 = 16 | Full test battery passes: typos, synonyms, intents resolve; precision guard kills false positives ("image carousel slider" → 0); new-widget tags rank sensibly |
+| 4 | Copy-paste | 3 ×3 = 9 | One-click copy verified, conventions hold for all 20; no stranger test yet |
+| 5 | Request pipeline | 2 ×3 = 6 | localStorage + admin verified; **Formspree still not connected — needs Carol** |
+| 6 | Performance | 3 ×2 = 6 | Lazy-loaded previews (4/20 frames at initial viewport), no layout shift observed; no cold-mobile measurement |
+| 7 | Accessibility | 3 ×2 = 6 | Full keyboard path, focus trap + restore, aria, reduced-motion, AA contrast — verified; no screen-reader session yet |
+| 8 | Maintainability | 3 ×2 = 6 | Add-a-widget is one documented object; conventions in README + code header |
+| 9 | Distribution | 4 ×2 = 8 | Public repo, MIT, README, live on Pages, linked from personal site, per-widget URLs |
+| 10 | Mobile | 3 ×2 = 6 | Emulated-viewport QA done, nav crowding fixed; real-device touch check still open |
+
+**Total: 93/100 — Ship it loudly**, with two honest asterisks: Formspree (criterion 5) is the only stub left, and a real-phone touch pass would close criterion 10.
 
 ## 9. File map
 
 ```
-TheEverythingLibrary/
+TheEverythingLibrary/                    ← canonical copy: ~/.openclaw/workspace/TheEverythingLibrary
 ├── index.html      ← the entire site (skeleton, widget data, search, modal, request log, admin)
+├── README.md       ← public-facing docs (usage, widget table, contributing conventions)
+├── LICENSE         ← MIT
 └── docs/
     └── ROADMAP-V0.md   ← this document
 ```
 
-Key code landmarks inside index.html: `FORMSPREE_ENDPOINT` constant (top of the script), `WIDGETS` array (all widget data — add new widgets here), `RATIOS` (masonry tile height rhythm), `score()`/`search()` (the NL search engine), `renderAdmin()` (the `?admin=1` view).
+Repo: https://github.com/Carolllmy/the-everything-library · Live: https://carolllmy.github.io/the-everything-library/
+(The old copy under `~/Documents/Claude 5 Fable project/` is now superseded by the workspace copy / git repo.)
+
+Key code landmarks inside index.html: `FORMSPREE_ENDPOINT` constant (top of the script), `WIDGETS` array (all widget data — add new widgets here), `RATIOS` (masonry tile height rhythm), `previewObserver`/`itemCard()` (lazy live tiles), `score()`/`search()` (the NL search engine), `openFromHash()` (per-widget URLs), `renderAdmin()` (the `?admin=1` view).
