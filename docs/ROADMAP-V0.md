@@ -1,12 +1,19 @@
 # TheEverythingLibrary — Roadmap V0
 
 **Status:** in active development · **Last updated:** June 12, 2026 · **Owner:** Carol
+<!-- Decorations category added June 12, 2026 -->
 
 ---
 
 ## 1. What this project is
 
-TheEverythingLibrary is a free, public library of interactive web widgets — fancy, stylish, tasteful components that anyone can copy, paste, and ship with zero dependencies. Every widget is a self-contained HTML snippet (markup + CSS + JS in one block) that works when pasted into any page.
+TheEverythingLibrary is a free, public library of interactive web components — fancy, stylish, tasteful items that anyone can copy, paste, and ship with zero dependencies. Every item is a self-contained HTML snippet (markup + CSS + JS in one block) that works when pasted into any page.
+
+There are two top-level types of things in the library:
+
+**Widgets** — interactive UI components (buttons, text effects, cards, controls, loaders). You drop them into your page's layout and users interact with them.
+
+**Decorations** — animated, purely visual elements with a transparent background. They float over whatever background color is on the page, making any site more visually alive. Examples: wacky waving inflatable tube men, animated mascots, floating particles, ambient looping effects. Decorations never require user interaction — they just exist and look fun.
 
 The reference point for quality and feel is the Framer Marketplace (framer.com/marketplace). The site's information architecture is deliberately much simpler than Framer's: a browse feed of widget tiles, a natural-language search bar, and a private request pipeline for widgets that don't exist yet.
 
@@ -28,6 +35,8 @@ These were settled early and shape everything else.
 
 **Tiles show live previews** (decided June 12, 2026, closing 7.1). Each feed tile runs the widget's exact code in a sandboxed, lazy-loaded iframe — the same `previewDoc()` used by the detail modal. `pointer-events:none` keeps the tile clickable; srcdoc is set only when the tile nears the viewport.
 
+**Two top-level nav sections: Widgets and Decorations** (added June 12, 2026). The top nav has two peer links — "Widgets" (all UI components) and "Decorations" (animated transparent overlays). Clicking either sets the subnav active state and filters the masonry feed. The subnav category bar also includes a "Decorations" button so users can reach it from either path. Decoration snippets are convention-identical to widgets (same `tel-` prefix, transparent demo wrapper, 12–17 tags) with one rule: `background:transparent` on the demo container so the decoration floats on any background.
+
 ## 3. Current state of the build
 
 What works today in `index.html`:
@@ -40,7 +49,7 @@ Typing in the search bar live-filters: matches render as a masonry results feed 
 
 Everything above is verified working: tested end-to-end in a headless browser (search ranking, typo tolerance, no-match flow, request submission, admin log, modal copy, responsive breakpoints) with zero console errors.
 
-## 4. Widget inventory (10 shipped)
+## 4. Widget inventory (21 shipped)
 
 Each widget has: `id`, `cat` (category), `name`, `desc`, `tags` (search vocabulary), and `code` (the self-contained snippet, shown verbatim to users).
 
@@ -49,15 +58,26 @@ Each widget has: `id`, `cat` (category), `name`, `desc`, `tags` (search vocabula
 | Magnetic Button | buttons | Pulls toward the cursor within a radius, springs back on exit |
 | Confetti Button | buttons | DOM-particle confetti burst on click, no canvas |
 | Ripple Button | buttons | Material-style ripple radiating from the click point |
+| Shimmer Button | buttons | Diagonal light sweep on hover |
+| Border Beam Button | buttons | Animated glowing border beam circles the button |
 | Gradient Flow Text | text | Headline with an endlessly flowing animated gradient |
 | Typewriter Text | text | Types/deletes through a configurable phrase list, blinking caret |
 | Glitch Text | text | RGB-split glitch effect on hover |
 | Count-Up Stat | text | Numbers animate up with easing when scrolled into view (IntersectionObserver) |
+| Scramble Text | text | Characters scramble then resolve to the real text on hover |
+| Wave Text | text | Each letter bobs on its own gentle wave, forever |
 | Spotlight Card | cards | Radial glow that follows the cursor across the card |
 | 3D Tilt Card | cards | Perspective tilt with moving glare, holo-card style |
+| Glass Card | cards | Frosted glass panel floating over drifting color blobs |
 | Springy Toggle | controls | Squash-and-stretch jelly toggle switch, pure CSS |
+| Star Rating | controls | Five stars with hover preview and pop animation |
+| Bubble Slider | controls | Range slider with a floating value bubble above the thumb |
+| Orbit Loader | loaders | Three dots orbiting in formation |
+| Skeleton Shimmer | loaders | Classic skeleton placeholder with sliding shimmer |
+| Progress Ring | loaders | SVG ring sweeping to target with counting label |
+| **Balloon Guy** | **decorations** | **Wacky waving inflatable tube man — pure CSS, transparent background** |
 
-Snippet conventions: class names are prefixed `tel-` to avoid collisions; no external assets or libraries; no backticks or `${}` in widget JS (snippets live inside template literals); `</script>` inside snippets is escaped as `<\/script>`; each demo wrapper centers itself with a ~200px min-height.
+Snippet conventions: class names are prefixed `tel-` to avoid collisions; no external assets or libraries; no backticks or `${}` in widget JS (snippets live inside template literals); `</script>` inside snippets is escaped as `<\/script>`; each demo wrapper centers itself with a ~200–300px min-height. **Additional rule for decorations:** `background:transparent` on the demo container — never any background color — so the decoration floats naturally on any page background.
 
 ## 5. How the natural-language search works
 
@@ -85,12 +105,12 @@ V0 is the complete public launch on Carol's personal website. No V1/V2 split yet
 ### 7.1 Content & tiles
 - [x] Decide tile thumbnail treatment — **live iframe previews per tile**, lazy-loaded via IntersectionObserver (srcdoc set only when a tile nears the viewport), sandboxed, pointer-events disabled so the tile stays clickable
 - [x] Fill all tiles in the masonry feed accordingly
-- [x] Grow the library beyond the initial 10 — now **20 widgets**: added Shimmer Button, Border Beam Button, Scramble Text, Wave Text, Glass Card, Star Rating, Bubble Slider, plus a new **Loaders** category (Orbit Loader, Skeleton Shimmer, Progress Ring)
+- [x] Grow the library beyond the initial 10 — now **21 items**: added Shimmer Button, Border Beam Button, Scramble Text, Wave Text, Glass Card, Star Rating, Bubble Slider, plus **Loaders** (Orbit Loader, Skeleton Shimmer, Progress Ring), plus **Decorations** (Balloon Guy)
 - [x] Per-widget usage notes — optional `notes` field rendered as a "Customize:" line in the modal (magnetic, typewriter, count-up, scramble, wave, star rating, bubble slider, progress ring)
 
 ### 7.2 Site polish
 - [x] Hero/branding: kept **"Library"** as the h1 (matches the Framer skeleton; the full name lives in the nav brand), subtitle unchanged
-- [x] Top-nav links: trimmed to real ones — Widgets (home), Docs (→ GitHub README), Request a widget (→ focuses search); "Get updates" replaced with "Star on GitHub"; GitHub links to the repo
+- [x] Top-nav links: Widgets (home), **Decorations** (new — filters to transparent animated overlays), Docs (→ GitHub README), Request a widget (→ focuses search); "Star on GitHub" pill links to repo
 - [ ] Featured/curation concept inside the masonry feed — deferred, revisit when the library is larger
 - [x] Accessibility pass: tiles are keyboard-operable (role=button, Enter/Space), modal is a focus-trapped aria dialog that restores focus on close, visible :focus-visible states, aria labels on icons/inputs/toast, prefers-reduced-motion respected on the site AND inside every preview iframe, `--dim-2` bumped #666→#777 for WCAG AA
 - [x] Mobile QA in emulated viewport (375px): single-column masonry, nav crowding fixed (pill hidden ≤560px, category row no longer collides with the search icon) — *still worth a 2-minute check on Carol's real phone*

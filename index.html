@@ -203,7 +203,8 @@
   <div class="topnav-inner">
     <a class="brand" href="#" id="brandHome"><span class="brand-mark" aria-hidden="true"></span>TheEverythingLibrary</a>
     <div class="topnav-links">
-      <a href="#" class="active" id="navWidgets">Widgets</a>
+      <a href="#" class="active" id="navWidgets" data-nav="widgets">Widgets</a>
+      <a href="#" id="navDecorations" data-nav="decorations">Decorations</a>
       <a href="https://github.com/Carolllmy/the-everything-library#readme" target="_blank" rel="noopener">Docs</a>
       <a href="#" id="navRequest">Request a widget</a>
     </div>
@@ -222,6 +223,7 @@
     <button class="cat" data-cat="cards">Cards</button>
     <button class="cat" data-cat="controls">Controls</button>
     <button class="cat" data-cat="loaders">Loaders</button>
+    <button class="cat" data-cat="decorations">Decorations</button>
   </div>
   <button class="search-toggle" id="searchToggle" title="Search" aria-label="Search widgets">
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
@@ -924,6 +926,7 @@ document.querySelectorAll('.tel-tilt').forEach(function(card){
   desc:"An SVG ring that sweeps to its target with a counting label.",
   notes:"Set the target with <code>data-value</code> (0–100) on the <code>tel-ring</code> div.",
   tags:["progress","ring","circle","circular","percent","percentage","donut","gauge","meter","chart","stats","completion","score","dashboard","svg","radial"],
+
   code:`<div class="tel-ring-demo">
   <div class="tel-ring" data-value="75">
     <svg width="120" height="120" viewBox="0 0 120 120">
@@ -970,6 +973,52 @@ document.querySelectorAll('.tel-tilt').forEach(function(card){
   requestAnimationFrame(step);
 })();
 <\/script>`
+},
+{
+  id:"balloon-guy", cat:"decorations",
+  name:"Balloon Guy",
+  desc:"A wacky waving inflatable tube man, flailing arms and all. Transparent background — floats on any site.",
+  notes:"Drop onto any page — <code>background:transparent</code> means it floats over whatever color is beneath. Scale with <code>transform:scale()</code> on <code>.tel-bguy-demo</code>. Change color by swapping the two orange hex codes (<code>#ff8c2a</code> and <code>#e05500</code>) to any color you like.",
+  tags:["decoration","balloon","tube man","inflatable","waving","dancing","mascot","fun","silly","character","animated","transparent","party","wacky","flailing","arms","bouncy","wobbly","site decoration","overlay","sticker","tubeman","air dancer"],
+  code:`<div class="tel-bguy-demo">
+  <div class="tel-bguy">
+    <div class="tel-bguy-head">
+      <div class="tel-bguy-eye-l"></div>
+      <div class="tel-bguy-eye-r"></div>
+      <div class="tel-bguy-mouth"></div>
+    </div>
+    <div class="tel-bguy-neck"></div>
+    <div class="tel-bguy-body">
+      <div class="tel-bguy-arm tel-bguy-arm-l"></div>
+      <div class="tel-bguy-arm tel-bguy-arm-r"></div>
+    </div>
+    <div class="tel-bguy-feet">
+      <div class="tel-bguy-foot"></div>
+      <div class="tel-bguy-foot"></div>
+    </div>
+  </div>
+</div>
+<style>
+.tel-bguy-demo{display:flex;align-items:flex-end;justify-content:center;min-height:300px;background:transparent;padding-bottom:16px}
+.tel-bguy{position:relative;display:flex;flex-direction:column;align-items:center;transform-origin:50% 100%;animation:tel-bguy-sway .8s ease-in-out infinite;will-change:transform}
+@keyframes tel-bguy-sway{0%{transform:rotate(-18deg)}30%{transform:rotate(4deg)}50%{transform:rotate(16deg)}80%{transform:rotate(-3deg)}100%{transform:rotate(-18deg)}}
+.tel-bguy-head{width:54px;height:54px;border-radius:50%;background:radial-gradient(circle at 38% 38%,#ff9d4d,#e55c00);position:relative;animation:tel-bguy-headbob .8s ease-in-out infinite;overflow:hidden;will-change:transform}
+@keyframes tel-bguy-headbob{0%,100%{transform:rotate(-14deg)}50%{transform:rotate(14deg)}}
+.tel-bguy-eye-l,.tel-bguy-eye-r{position:absolute;top:17px;width:9px;height:11px;border-radius:50%;background:#1a0900}
+.tel-bguy-eye-l{left:11px}
+.tel-bguy-eye-r{right:11px}
+.tel-bguy-mouth{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:26px;height:14px;background:#1a0900;border-radius:0 0 20px 20px}
+.tel-bguy-neck{width:18px;height:13px;background:radial-gradient(circle at 50%,#ff8c2a,#e05500)}
+.tel-bguy-body{width:46px;height:110px;background:radial-gradient(ellipse at 35% 40%,#ff8c2a,#e05500);border-radius:23px 23px 10px 10px;position:relative;animation:tel-bguy-squish .8s ease-in-out infinite;will-change:transform}
+@keyframes tel-bguy-squish{0%,100%{transform:scaleX(1.09) scaleY(0.93)}50%{transform:scaleX(0.91) scaleY(1.08)}}
+.tel-bguy-arm{position:absolute;top:12px;width:18px;height:78px;background:radial-gradient(ellipse at 35% 50%,#ff9d4d,#e05500);border-radius:9px;transform-origin:top center;will-change:transform}
+.tel-bguy-arm-l{left:-19px;animation:tel-bguy-arm-l .54s ease-in-out infinite}
+@keyframes tel-bguy-arm-l{0%{transform:rotate(-150deg)}25%{transform:rotate(35deg)}55%{transform:rotate(-95deg)}80%{transform:rotate(75deg)}100%{transform:rotate(-150deg)}}
+.tel-bguy-arm-r{right:-19px;animation:tel-bguy-arm-r .61s ease-in-out infinite}
+@keyframes tel-bguy-arm-r{0%{transform:rotate(110deg)}28%{transform:rotate(-125deg)}57%{transform:rotate(145deg)}83%{transform:rotate(-55deg)}100%{transform:rotate(110deg)}}
+.tel-bguy-feet{display:flex;gap:10px;margin-top:2px}
+.tel-bguy-foot{width:16px;height:22px;background:radial-gradient(ellipse at 50% 30%,#ff8c2a,#e05500);border-radius:8px 8px 4px 4px}
+</style>`
 }
 ];
 
@@ -1034,6 +1083,8 @@ function renderBrowse(cat){
 /* ============ CATEGORY SUBNAV ============ */
 function showBrowse(cat){
   document.querySelectorAll(".subnav .cat").forEach(x=>x.classList.toggle("active", x.dataset.cat===(cat||"all")));
+  const isDecos = cat==="decorations";
+  document.querySelectorAll(".topnav-links a[data-nav]").forEach(a=>a.classList.toggle("active", a.dataset.nav===(isDecos?"decorations":"widgets")));
   renderBrowse(cat);
   $("#search").value=""; $("#clearBtn").style.display="none";
   $("#browseWrap").style.display=""; $("#resultsWrap").style.display="none";
@@ -1049,6 +1100,7 @@ $("#searchToggle").addEventListener("click", focusSearch);
 $("#navRequest").addEventListener("click", e=>{ e.preventDefault(); focusSearch(); });
 $("#brandHome").addEventListener("click", e=>{ e.preventDefault(); showBrowse("all"); window.scrollTo({top:0,behavior:"smooth"}); });
 $("#navWidgets").addEventListener("click", e=>{ e.preventDefault(); showBrowse("all"); window.scrollTo({top:0,behavior:"smooth"}); });
+$("#navDecorations").addEventListener("click", e=>{ e.preventDefault(); showBrowse("decorations"); window.scrollTo({top:0,behavior:"smooth"}); });
 
 /* ============ NATURAL-LANGUAGE SEARCH ============ */
 const STOP = new Set(("a an the i my me your you we it its this that these those of for to in on at with and or is are was be can could should would will want need wants needs make makes making build get give show something some thing things like when where how what which please really very just kind sort type effect element component widget").split(" "));
