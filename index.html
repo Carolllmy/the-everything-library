@@ -1,0 +1,1287 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TheEverythingLibrary — free interactive widgets</title>
+<meta name="description" content="A free library of interactive web widgets — fancy, stylish components you can copy, paste, and ship. Zero dependencies, single HTML snippets.">
+<meta property="og:title" content="TheEverythingLibrary — free interactive widgets">
+<meta property="og:description" content="Copy, paste, ship. Free interactive widgets with zero dependencies.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#000;
+    --text:#fff;
+    --dim:#999;
+    --dim-2:#777; /* WCAG AA on #000 for small text */
+    --hairline:rgba(255,255,255,.1);
+    --tile:#141414;
+    --tile-border:rgba(255,255,255,.06);
+    --pill:rgba(255,255,255,.1);
+    --content:1264px;
+    --font:"Inter",-apple-system,"Segoe UI",sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  a{color:inherit;text-decoration:none}
+  button{font-family:var(--font)}
+  :focus{outline:none}
+  :focus-visible{outline:2px solid #fff;outline-offset:3px;border-radius:4px}
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;
+      transition-duration:.01ms!important;scroll-behavior:auto!important}
+  }
+
+  /* ============ TOP NAV ============ */
+  .topnav{height:67px;border-bottom:1px solid var(--hairline);display:flex;align-items:center}
+  .topnav-inner{width:100%;max-width:var(--content);margin:0 auto;padding:0 24px;
+    display:flex;align-items:center;justify-content:space-between}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:600;font-size:15px;letter-spacing:-.01em}
+  .brand-mark{width:18px;height:18px;border-radius:5px;background:#fff;position:relative;flex:none}
+  .brand-mark::after{content:"";position:absolute;inset:5px;background:#000;border-radius:2px}
+  .topnav-links{display:flex;gap:30px;position:absolute;left:50%;transform:translateX(-50%)}
+  .topnav{position:relative}
+  .topnav-links a{color:#ccc;font-size:15px;transition:color .15s}
+  .topnav-links a:hover,.topnav-links a.active{color:#fff}
+  .topnav-right{display:flex;align-items:center;gap:22px}
+  .topnav-right .quiet{color:#ccc;font-size:15px;transition:color .15s}
+  .topnav-right .quiet:hover{color:#fff}
+  .btn-pill{background:#fff;color:#000;font-weight:600;font-size:15px;border:0;border-radius:999px;
+    padding:9px 18px;cursor:pointer;transition:transform .15s}
+  .btn-pill:hover{transform:scale(1.04)}
+
+  /* ============ SUB NAV ============ */
+  .subnav{height:68px;border-bottom:1px solid var(--hairline);position:relative;display:flex;align-items:center}
+  .subnav-inner{width:100%;max-width:var(--content);margin:0 auto;padding:0 24px;
+    display:flex;align-items:center;justify-content:center;gap:34px}
+  .subnav a,.subnav button.cat{color:#ccc;font-size:15px;transition:color .15s;cursor:pointer;
+    background:none;border:0;padding:0}
+  .subnav a:hover,.subnav a.active,.subnav button.cat:hover,.subnav button.cat.active{color:#fff}
+  .subnav .search-toggle{position:absolute;right:24px;top:50%;transform:translateY(-50%);
+    background:none;border:0;color:#ccc;cursor:pointer;padding:8px;display:flex;transition:color .15s}
+  .subnav .search-toggle:hover{color:#fff}
+
+  /* ============ HERO ============ */
+  .hero{text-align:center;padding:108px 24px 96px}
+  .hero h1{font-size:62px;font-weight:500;letter-spacing:-.05em;margin:0;line-height:1.05}
+  .hero .sub{color:var(--dim);font-size:21px;line-height:1.45;font-weight:400;
+    margin:22px auto 0;max-width:400px}
+  .hero-search{position:relative;width:220px;height:44px;margin:38px auto 0;transition:width .35s cubic-bezier(.3,.8,.3,1)}
+  .hero-search:focus-within{width:340px}
+  .hero-search input{width:100%;height:44px;border:0;outline:none;border-radius:100px;
+    background:var(--pill);color:#fff;font-size:15px;font-family:var(--font);
+    padding:12px 36px 12px 40px;transition:background .2s}
+  .hero-search input::placeholder{color:var(--dim)}
+  .hero-search input:hover{background:rgba(255,255,255,.13)}
+  .hero-search .icon{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--dim);pointer-events:none;display:flex}
+  .hero-search .clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);display:none;
+    background:rgba(255,255,255,.12);border:0;color:#ccc;width:22px;height:22px;border-radius:50%;
+    cursor:pointer;font-size:13px;line-height:1;padding:0}
+
+  /* ============ SECTIONS ============ */
+  main{max-width:var(--content);margin:0 auto;padding:0 24px 140px}
+  section{margin-bottom:96px}
+  .sect-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:26px}
+  .sect-head h2{font-size:20px;font-weight:500;letter-spacing:-.01em;margin:0}
+  .see-all{color:var(--dim);font-size:15px;transition:color .15s;cursor:pointer}
+  .see-all:hover{color:#fff}
+  .dots{display:flex;gap:7px}
+  .dots span{width:6px;height:6px;border-radius:50%;background:#3a3a3a;cursor:pointer;transition:background .2s}
+  .dots span.on{background:#fff}
+
+  /* Pinterest-style two-column masonry */
+  .masonry{columns:2;column-gap:24px;max-width:920px;margin:0 auto}
+  .item{break-inside:avoid;margin-bottom:34px;cursor:pointer;animation:pinin .35s ease both}
+  @keyframes pinin{from{opacity:0;transform:translateY(10px)}}
+  .item .thumb{position:relative;overflow:hidden;border-radius:12px;background:var(--tile);
+    border:1px solid var(--tile-border);transition:border-color .2s}
+  .item .thumb iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block;
+    background:transparent;pointer-events:none;opacity:0;transition:opacity .4s ease}
+  .item .thumb iframe.loaded{opacity:1}
+  .item:hover .thumb,.item:focus-visible .thumb{border-color:rgba(255,255,255,.18)}
+  .item .name{font-size:15px;font-weight:500;margin-top:13px;letter-spacing:-.01em}
+  .item .price{font-size:14px;color:var(--dim);margin-top:3px}
+  @media (max-width:560px){.masonry{columns:1}}
+
+  /* ============ SEARCH RESULTS / NO MATCH ============ */
+  #resultsWrap{display:none}
+  .no-results{display:none;text-align:center;padding:80px 24px 40px;max-width:430px;margin:0 auto}
+  .no-results h3{font-size:24px;font-weight:500;letter-spacing:-.02em;margin:0 0 10px}
+  .no-results p{color:var(--dim);font-size:15px;line-height:1.5;margin:0 0 34px}
+  .req-form{text-align:left}
+  .req-form label{display:block;font-size:13px;font-weight:500;color:var(--dim);margin:18px 0 8px}
+  .req-form input,.req-form textarea{width:100%;border:0;outline:none;border-radius:10px;
+    background:rgba(255,255,255,.08);color:#fff;font-size:15px;font-family:var(--font);
+    padding:12px 14px;resize:vertical;transition:background .2s}
+  .req-form input:focus,.req-form textarea:focus{background:rgba(255,255,255,.12)}
+  .req-form input::placeholder,.req-form textarea::placeholder{color:var(--dim-2)}
+  .req-form .submit{margin-top:24px;width:100%;background:#fff;color:#000;font-weight:600;font-size:15px;
+    border:0;border-radius:10px;padding:13px;cursor:pointer;transition:transform .15s}
+  .req-form .submit:hover{transform:scale(1.015)}
+  .req-sent{display:none;color:var(--dim);font-size:15px;padding-top:8px}
+  .req-sent strong{color:#fff;display:block;font-size:18px;font-weight:500;margin-bottom:6px}
+
+  /* ============ MODAL ============ */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:50;display:none;
+    align-items:center;justify-content:center;padding:24px;animation:fadein .15s ease}
+  .overlay.open{display:flex}
+  @keyframes fadein{from{opacity:0}}
+  .modal{width:min(860px,100%);max-height:90vh;overflow:auto;border-radius:14px;
+    background:#0d0d0d;border:1px solid var(--hairline);animation:modalin .2s ease}
+  @keyframes modalin{from{opacity:0;transform:translateY(8px)}}
+  .modal-head{display:flex;align-items:flex-start;justify-content:space-between;padding:26px 28px 0}
+  .modal-head h3{margin:0;font-size:22px;font-weight:500;letter-spacing:-.02em}
+  .modal-head p{margin:5px 0 0;color:var(--dim);font-size:14px}
+  .modal-actions{display:flex;gap:8px;flex:none;align-items:center}
+  .modal-close{border:0;background:rgba(255,255,255,.08);color:#ccc;width:32px;height:32px;border-radius:50%;
+    cursor:pointer;font-size:14px;flex:none;transition:color .15s}
+  .modal-close:hover{color:#fff}
+  .share-btn{border:0;background:rgba(255,255,255,.08);color:#ccc;height:32px;padding:0 14px;border-radius:999px;
+    cursor:pointer;font-size:13px;font-weight:500;transition:color .15s;display:flex;align-items:center;gap:6px}
+  .share-btn:hover{color:#fff}
+  .modal .big-preview{height:300px;margin:22px 28px;border-radius:10px;border:1px solid var(--tile-border);
+    background:var(--tile);overflow:hidden}
+  .modal .big-preview iframe{width:100%;height:100%;border:0;background:transparent;display:block}
+  .usage-note{margin:-8px 28px 22px;color:var(--dim);font-size:13.5px;line-height:1.55}
+  .usage-note strong{color:#ccc;font-weight:500}
+  .usage-note code{font-family:var(--mono);font-size:12px;color:#ccc;background:rgba(255,255,255,.07);
+    padding:1px 5px;border-radius:4px}
+  .code-wrap{margin:0 28px 28px;border-radius:10px;overflow:hidden;border:1px solid var(--tile-border)}
+  .code-head{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;
+    background:#0a0a0a;border-bottom:1px solid var(--tile-border)}
+  .code-head span{font-family:var(--mono);font-size:12px;color:var(--dim-2)}
+  .copy-btn{border:0;border-radius:7px;padding:7px 14px;cursor:pointer;font-weight:600;font-size:13px;
+    background:#fff;color:#000;transition:transform .15s}
+  .copy-btn:active{transform:scale(.95)}
+  pre.code{margin:0;padding:18px;background:#0a0a0a;color:#ccc;
+    font-family:var(--mono);font-size:12.5px;line-height:1.55;overflow-x:auto;max-height:320px;white-space:pre}
+
+  /* ============ ADMIN ============ */
+  .admin{display:none;margin-top:40px;padding:30px;border-radius:12px;border:1px solid var(--hairline);background:#0a0a0a}
+  .admin h2{margin:0 0 4px;font-size:20px;font-weight:500}
+  .admin .sub{color:var(--dim);font-size:13px;margin:0 0 20px}
+  .admin table{width:100%;border-collapse:collapse;font-size:13.5px}
+  .admin th{text-align:left;color:var(--dim-2);font-weight:500;font-size:11px;text-transform:uppercase;
+    letter-spacing:.08em;padding:8px 10px;border-bottom:1px solid var(--hairline)}
+  .admin td{padding:11px 10px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top;color:#ccc}
+  .admin .empty{color:var(--dim-2);padding:20px 10px}
+  .admin .tools{margin-top:18px;display:flex;gap:10px}
+  .admin .tools button{border:1px solid var(--hairline);background:transparent;color:#ccc;
+    border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px}
+  .admin .tools button:hover{color:#fff;border-color:rgba(255,255,255,.3)}
+
+  footer{border-top:1px solid var(--hairline);padding:46px 24px;text-align:center;color:var(--dim-2);font-size:13px}
+
+  .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);opacity:0;
+    background:#fff;color:#000;padding:10px 20px;border-radius:999px;font-size:14px;font-weight:500;
+    z-index:99;transition:transform .25s ease,opacity .25s;pointer-events:none}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+  @media (max-width:1000px){
+    .row-4,.list-4{grid-template-columns:repeat(2,1fr)}
+    .row-3{grid-template-columns:1fr}
+    .topnav-links{display:none}
+  }
+  @media (max-width:560px){
+    .row-4,.list-4{grid-template-columns:1fr}
+    .hero h1{font-size:42px}
+    .subnav-inner{gap:18px;overflow-x:auto;justify-content:flex-start;padding-right:60px}
+    .topnav-right .btn-pill{display:none!important}
+    .topnav-right{gap:0}
+  }
+</style>
+</head>
+<body>
+
+<nav class="topnav" aria-label="Main">
+  <div class="topnav-inner">
+    <a class="brand" href="#" id="brandHome"><span class="brand-mark" aria-hidden="true"></span>TheEverythingLibrary</a>
+    <div class="topnav-links">
+      <a href="#" class="active" id="navWidgets">Widgets</a>
+      <a href="https://github.com/Carolllmy/the-everything-library#readme" target="_blank" rel="noopener">Docs</a>
+      <a href="#" id="navRequest">Request a widget</a>
+    </div>
+    <div class="topnav-right">
+      <a class="quiet" href="https://github.com/Carolllmy/the-everything-library" target="_blank" rel="noopener">GitHub</a>
+      <a class="btn-pill" href="https://github.com/Carolllmy/the-everything-library" target="_blank" rel="noopener" style="display:inline-block">Star on GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<nav class="subnav" aria-label="Categories">
+  <div class="subnav-inner">
+    <button class="cat active" data-cat="all">All</button>
+    <button class="cat" data-cat="buttons">Buttons</button>
+    <button class="cat" data-cat="text">Text</button>
+    <button class="cat" data-cat="cards">Cards</button>
+    <button class="cat" data-cat="controls">Controls</button>
+    <button class="cat" data-cat="loaders">Loaders</button>
+  </div>
+  <button class="search-toggle" id="searchToggle" title="Search" aria-label="Search widgets">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+  </button>
+</nav>
+
+<div class="hero">
+  <h1>Library</h1>
+  <p class="sub">The best free widgets, interactions and effects — copy, paste, ship.</p>
+  <div class="hero-search">
+    <span class="icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
+    <input id="search" type="text" placeholder="Search..." autocomplete="off" aria-label="Search widgets in natural language">
+    <button class="clear" id="clearBtn" title="Clear" aria-label="Clear search">×</button>
+  </div>
+</div>
+
+<main>
+
+  <div id="browseWrap">
+    <section>
+      <div class="masonry" id="masonry"></div>
+    </section>
+  </div>
+
+  <div id="resultsWrap">
+    <section>
+      <div class="sect-head" style="max-width:920px;margin:0 auto 26px"><h2 id="resultsTitle">Results</h2><span class="see-all" id="resultsCount"></span></div>
+      <div class="masonry" id="gridResults"></div>
+      <div class="no-results" id="noResults">
+        <h3>Nothing matches that — yet.</h3>
+        <p>Tell me what you're trying to build and I'll consider adding it to the library.</p>
+        <form class="req-form" id="reqForm">
+          <label for="reqWhat">What widget do you need?</label>
+          <input id="reqWhat" type="text" placeholder="e.g. a draggable before/after image slider" required>
+          <label for="reqWhy">What are you trying to achieve?</label>
+          <textarea id="reqWhy" rows="3" placeholder="Where will you use it? What should it feel like?"></textarea>
+          <label for="reqEmail">Your email (optional)</label>
+          <input id="reqEmail" type="email" placeholder="you@example.com">
+          <button class="submit" type="submit">Request this widget</button>
+        </form>
+        <div class="req-sent" id="reqSent"><strong>Request logged.</strong>Thanks — I read every one.</div>
+      </div>
+    </section>
+  </div>
+
+  <div class="admin" id="admin">
+    <h2>Widget requests</h2>
+    <p class="sub">Private log — only visible with ?admin=1.</p>
+    <table>
+      <thead><tr><th>When</th><th>Searched for</th><th>Requested</th><th>Goal</th><th>Email</th></tr></thead>
+      <tbody id="adminRows"></tbody>
+    </table>
+    <div class="tools">
+      <button id="exportBtn">Export JSON</button>
+      <button id="clearLogBtn">Clear log</button>
+    </div>
+  </div>
+
+</main>
+
+<footer>TheEverythingLibrary — free to use, share, remix · <a href="https://github.com/Carolllmy/the-everything-library/blob/main/LICENSE" target="_blank" rel="noopener" style="text-decoration:underline">MIT License</a> · <a href="https://github.com/Carolllmy/the-everything-library" target="_blank" rel="noopener" style="text-decoration:underline">GitHub</a></footer>
+
+<div class="overlay" id="overlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <div class="modal-head">
+      <div><h3 id="mTitle"></h3><p id="mDesc"></p></div>
+      <div class="modal-actions">
+        <button class="share-btn" id="shareBtn" title="Copy a direct link to this widget">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
+          Copy link
+        </button>
+        <button class="modal-close" id="mClose" aria-label="Close">✕</button>
+      </div>
+    </div>
+    <div class="big-preview"><iframe id="mFrame" title="Widget preview" sandbox="allow-scripts"></iframe></div>
+    <p class="usage-note" id="mNotes" hidden></p>
+    <div class="code-wrap">
+      <div class="code-head"><span>copy-paste — single HTML snippet, zero dependencies</span><button class="copy-btn" id="copyBtn">Copy code</button></div>
+      <pre class="code" id="mCode"></pre>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite">Copied to clipboard</div>
+
+<script>
+/* ================================================================
+   TheEverythingLibrary
+   - Every tile shows a live, lazy-loaded preview of the widget
+     (the same code the visitor copies, running in a sandboxed iframe).
+   - To receive requests by email: create a free form at formspree.io
+     and paste your endpoint below. Requests are ALWAYS also saved to
+     localStorage and visible at  yoursite.html?admin=1
+   - Adding a widget = appending one object to WIDGETS below.
+     Conventions: tel- class prefix, zero dependencies, no backticks
+     or dollar-brace in widget JS, escape closing script tags,
+     12-17 tags covering synonyms and intents, optional `notes`.
+   ================================================================ */
+const FORMSPREE_ENDPOINT = ""; // e.g. "https://formspree.io/f/abcdwxyz"
+
+const WIDGETS = [
+{
+  id:"magnetic-button", cat:"buttons",
+  name:"Magnetic Button",
+  desc:"Pulls toward your cursor, springs back when you leave.",
+  notes:"Tune the pull: <code>zone</code> is the attraction radius in px, <code>strength</code> (0–1) is how far the button moves.",
+  tags:["button","magnetic","cursor","mouse","follow","attract","sticky","spring","springy","hover","interactive button","reacts to mouse","pull","gravity","cta","call to action","playful button"],
+  code:`<div class="tel-magnetic-demo">
+  <button class="tel-magnetic">Hover me</button>
+</div>
+<style>
+.tel-magnetic-demo{display:flex;align-items:center;justify-content:center;min-height:200px;font-family:sans-serif}
+.tel-magnetic{padding:16px 38px;font-size:16px;font-weight:700;color:#fff;border:0;border-radius:999px;cursor:pointer;
+  background:linear-gradient(135deg,#8b7cff,#38bdf8);box-shadow:0 10px 30px rgba(124,108,255,.45)}
+</style>
+<script>
+(function(){
+  var btn=document.querySelector('.tel-magnetic');
+  var zone=130, strength=0.4;
+  document.addEventListener('mousemove',function(e){
+    var r=btn.getBoundingClientRect();
+    var dx=e.clientX-(r.left+r.width/2), dy=e.clientY-(r.top+r.height/2);
+    if(Math.hypot(dx,dy)<zone){
+      btn.style.transition='transform .12s ease-out';
+      btn.style.transform='translate('+dx*strength+'px,'+dy*strength+'px)';
+    }else{
+      btn.style.transition='transform .55s cubic-bezier(.2,.9,.3,1.45)';
+      btn.style.transform='translate(0,0)';
+    }
+  });
+})();
+<\/script>`
+},
+{
+  id:"confetti-button", cat:"buttons",
+  name:"Confetti Button",
+  desc:"Bursts into confetti when clicked. Pure DOM, no canvas.",
+  tags:["button","confetti","celebrate","celebration","party","burst","explosion","particles","click","success","reward","fun","delight","congratulations","ship it","submit"],
+  code:`<div class="tel-confetti-demo">
+  <button class="tel-confetti">Celebrate 🎉</button>
+</div>
+<style>
+.tel-confetti-demo{display:flex;align-items:center;justify-content:center;min-height:200px;font-family:sans-serif}
+.tel-confetti{position:relative;padding:16px 36px;font-size:16px;font-weight:700;color:#fff;border:0;border-radius:14px;
+  cursor:pointer;background:linear-gradient(135deg,#ff5c38,#ff2d96);box-shadow:0 10px 28px rgba(255,45,150,.4);
+  transition:transform .12s}
+.tel-confetti:active{transform:scale(.93)}
+.tel-confetti-bit{position:fixed;width:9px;height:9px;pointer-events:none;z-index:9999}
+</style>
+<script>
+(function(){
+  var colors=['#ff5c38','#ff2d96','#8b7cff','#38bdf8','#00ffc8','#ffd23f'];
+  document.querySelector('.tel-confetti').addEventListener('click',function(e){
+    var r=this.getBoundingClientRect();
+    var ox=r.left+r.width/2, oy=r.top+r.height/2;
+    for(var i=0;i<36;i++){
+      var b=document.createElement('div');
+      b.className='tel-confetti-bit';
+      b.style.left=ox+'px'; b.style.top=oy+'px';
+      b.style.background=colors[i%colors.length];
+      b.style.borderRadius=(i%3===0)?'50%':'2px';
+      document.body.appendChild(b);
+      var ang=Math.random()*Math.PI*2, v=140+Math.random()*220;
+      var vx=Math.cos(ang)*v, vy=Math.sin(ang)*v-180;
+      b.animate([
+        {transform:'translate(0,0) rotate(0deg)',opacity:1},
+        {transform:'translate('+vx+'px,'+(vy+420)+'px) rotate('+(Math.random()*720-360)+'deg)',opacity:0}
+      ],{duration:900+Math.random()*600,easing:'cubic-bezier(.15,.6,.4,1)'}).onfinish=function(){this.effect.target.remove()};
+    }
+  });
+})();
+<\/script>`
+},
+{
+  id:"ripple-button", cat:"buttons",
+  name:"Ripple Button",
+  desc:"A soft ripple radiates from wherever you click.",
+  tags:["button","ripple","click","wave","material","feedback","touch","press","circle","expand","cta","interactive button","tactile"],
+  code:`<div class="tel-ripple-demo">
+  <button class="tel-ripple">Click anywhere on me</button>
+</div>
+<style>
+.tel-ripple-demo{display:flex;align-items:center;justify-content:center;min-height:200px;font-family:sans-serif}
+.tel-ripple{position:relative;overflow:hidden;padding:17px 40px;font-size:16px;font-weight:700;color:#fff;
+  border:0;border-radius:14px;cursor:pointer;background:#3b3bd6}
+.tel-ripple-wave{position:absolute;border-radius:50%;background:rgba(255,255,255,.45);
+  transform:scale(0);animation:tel-ripple-anim .65s ease-out forwards;pointer-events:none}
+@keyframes tel-ripple-anim{to{transform:scale(4);opacity:0}}
+</style>
+<script>
+document.querySelectorAll('.tel-ripple').forEach(function(btn){
+  btn.addEventListener('click',function(e){
+    var r=btn.getBoundingClientRect();
+    var d=Math.max(r.width,r.height);
+    var w=document.createElement('span');
+    w.className='tel-ripple-wave';
+    w.style.width=w.style.height=d+'px';
+    w.style.left=(e.clientX-r.left-d/2)+'px';
+    w.style.top=(e.clientY-r.top-d/2)+'px';
+    btn.appendChild(w);
+    setTimeout(function(){w.remove()},700);
+  });
+});
+<\/script>`
+},
+{
+  id:"gradient-text", cat:"text",
+  name:"Gradient Flow Text",
+  desc:"A headline with a slow, endlessly flowing gradient.",
+  tags:["text","gradient","heading","headline","title","animated","flow","colorful","rainbow","hero","typography","fancy text","text effect","shimmer"],
+  code:`<div class="tel-gradtext-demo">
+  <h2 class="tel-gradtext">Flowing gradient</h2>
+</div>
+<style>
+.tel-gradtext-demo{display:flex;align-items:center;justify-content:center;min-height:200px;font-family:sans-serif}
+.tel-gradtext{font-size:42px;font-weight:850;letter-spacing:-.03em;margin:0;
+  background:linear-gradient(90deg,#ff2d96,#8b7cff,#38bdf8,#00ffc8,#ff2d96);
+  background-size:300% 100%;
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+  animation:tel-gradflow 7s linear infinite}
+@keyframes tel-gradflow{to{background-position:300% 0}}
+</style>`
+},
+{
+  id:"typewriter", cat:"text",
+  name:"Typewriter Text",
+  desc:"Types, pauses, deletes, repeats — through any list of phrases.",
+  notes:"Edit the <code>data-phrases</code> attribute (a JSON array) to change what gets typed. The static lead-in text is the <code>tel-type-static</code> span.",
+  tags:["text","typewriter","typing","type","animation","rotating","phrases","words","cursor blink","terminal","hero","intro","text effect","loop","dynamic text"],
+  code:`<div class="tel-type-demo">
+  <span class="tel-type-static">I build&nbsp;</span><span class="tel-type" data-phrases='["interactive widgets","fancy websites","delightful things"]'></span><span class="tel-type-caret"></span>
+</div>
+<style>
+.tel-type-demo{display:flex;align-items:center;justify-content:center;min-height:200px;
+  font-family:sans-serif;font-size:26px;font-weight:700}
+.tel-type-static{color:#8a8a9a}
+.tel-type{background:linear-gradient(90deg,#8b7cff,#38bdf8);-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent}
+.tel-type-caret{display:inline-block;width:3px;height:1.1em;margin-left:3px;border-radius:2px;
+  background:#8b7cff;vertical-align:-0.15em;animation:tel-blink 1s steps(1) infinite}
+@keyframes tel-blink{50%{opacity:0}}
+</style>
+<script>
+(function(){
+  var el=document.querySelector('.tel-type');
+  var phrases=JSON.parse(el.getAttribute('data-phrases'));
+  var pi=0, ci=0, deleting=false;
+  (function tick(){
+    var word=phrases[pi];
+    ci += deleting ? -1 : 1;
+    el.textContent=word.slice(0,ci);
+    var delay = deleting ? 45 : 95;
+    if(!deleting && ci===word.length){ delay=1600; deleting=true; }
+    else if(deleting && ci===0){ deleting=false; pi=(pi+1)%phrases.length; delay=350; }
+    setTimeout(tick,delay);
+  })();
+})();
+<\/script>`
+},
+{
+  id:"glitch-text", cat:"text",
+  name:"Glitch Text",
+  desc:"RGB-split glitch that triggers on hover. Cyberpunk approved.",
+  tags:["text","glitch","cyberpunk","rgb","distortion","hover","hacker","retro","vhs","error","404","neon","text effect","heading","edgy"],
+  code:`<div class="tel-glitch-demo">
+  <span class="tel-glitch" data-text="GLITCH">GLITCH</span>
+</div>
+<style>
+.tel-glitch-demo{display:flex;align-items:center;justify-content:center;min-height:200px;font-family:monospace}
+.tel-glitch{position:relative;font-size:48px;font-weight:800;letter-spacing:.06em;color:#ff2d96;cursor:default}
+.tel-glitch::before,.tel-glitch::after{content:attr(data-text);position:absolute;left:0;top:0;opacity:0}
+.tel-glitch::before{color:#00ffc8}
+.tel-glitch::after{color:#38bdf8}
+.tel-glitch:hover::before{opacity:.85;animation:tel-glitch-a .35s steps(2) infinite}
+.tel-glitch:hover::after{opacity:.85;animation:tel-glitch-b .35s steps(2) infinite reverse}
+.tel-glitch:hover{animation:tel-glitch-base .35s steps(2) infinite}
+@keyframes tel-glitch-a{0%{transform:translate(-4px,2px);clip-path:inset(0 0 55% 0)}50%{transform:translate(3px,-2px);clip-path:inset(60% 0 0 0)}100%{transform:translate(-2px,1px);clip-path:inset(30% 0 30% 0)}}
+@keyframes tel-glitch-b{0%{transform:translate(4px,-2px);clip-path:inset(50% 0 0 0)}50%{transform:translate(-3px,2px);clip-path:inset(0 0 60% 0)}100%{transform:translate(2px,-1px);clip-path:inset(20% 0 40% 0)}}
+@keyframes tel-glitch-base{0%,100%{transform:translate(0)}50%{transform:translate(1px,-1px)}}
+</style>`
+},
+{
+  id:"countup-stat", cat:"text",
+  name:"Count-Up Stat",
+  desc:"Numbers race up with easing — perfect for dashboards and landing pages.",
+  notes:"Set each number with <code>data-target</code>; add an optional <code>data-suffix</code> like <code>%</code> or <code>+</code>. Counting starts when the stat scrolls into view.",
+  tags:["number","counter","count up","stat","statistics","metric","dashboard","animate","odometer","kpi","landing page","data","percentage","increment"],
+  code:`<div class="tel-count-demo">
+  <div class="tel-count-stat"><span class="tel-count" data-target="12847">0</span><small>downloads</small></div>
+  <div class="tel-count-stat"><span class="tel-count" data-target="99" data-suffix="%">0</span><small>satisfaction</small></div>
+</div>
+<style>
+.tel-count-demo{display:flex;gap:48px;align-items:center;justify-content:center;min-height:200px;font-family:sans-serif}
+.tel-count-stat{text-align:center}
+.tel-count{display:block;font-size:40px;font-weight:850;letter-spacing:-.02em;
+  background:linear-gradient(135deg,#8b7cff,#38bdf8);-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;font-variant-numeric:tabular-nums}
+.tel-count-stat small{color:#8a8a9a;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+</style>
+<script>
+(function(){
+  function animate(el){
+    var target=parseFloat(el.getAttribute('data-target'));
+    var suffix=el.getAttribute('data-suffix')||'';
+    var t0=null, dur=1800;
+    function step(t){
+      if(!t0) t0=t;
+      var p=Math.min((t-t0)/dur,1);
+      var eased=1-Math.pow(1-p,4);
+      el.textContent=Math.round(target*eased).toLocaleString()+suffix;
+      if(p<1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  var seen=new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(en.isIntersecting){ animate(en.target); seen.unobserve(en.target); }
+    });
+  },{threshold:.4});
+  document.querySelectorAll('.tel-count').forEach(function(el){seen.observe(el)});
+})();
+<\/script>`
+},
+{
+  id:"spotlight-card", cat:"cards",
+  name:"Spotlight Card",
+  desc:"A glow that chases your cursor across the card.",
+  tags:["card","spotlight","glow","hover","cursor","mouse","light","radial","gradient","border glow","card hover effect","shine","highlight","feature card","glass","glassmorphism"],
+  code:`<div class="tel-spot-demo">
+  <div class="tel-spot">
+    <h4>Spotlight</h4>
+    <p>Move your cursor over me.</p>
+  </div>
+</div>
+<style>
+.tel-spot-demo{display:flex;align-items:center;justify-content:center;min-height:200px;font-family:sans-serif}
+.tel-spot{position:relative;width:260px;padding:28px;border-radius:18px;overflow:hidden;
+  background:#14141f;border:1px solid rgba(255,255,255,.1);color:#eee;
+  --mx:50%;--my:50%}
+.tel-spot::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(220px circle at var(--mx) var(--my),rgba(139,124,255,.28),transparent 70%);
+  opacity:0;transition:opacity .3s}
+.tel-spot:hover::before{opacity:1}
+.tel-spot h4{margin:0 0 6px;font-size:18px}
+.tel-spot p{margin:0;font-size:13.5px;color:#9a9ab0}
+</style>
+<script>
+document.querySelectorAll('.tel-spot').forEach(function(card){
+  card.addEventListener('mousemove',function(e){
+    var r=card.getBoundingClientRect();
+    card.style.setProperty('--mx',(e.clientX-r.left)+'px');
+    card.style.setProperty('--my',(e.clientY-r.top)+'px');
+  });
+});
+<\/script>`
+},
+{
+  id:"tilt-card", cat:"cards",
+  name:"3D Tilt Card",
+  desc:"Perspective tilt with a moving glare, like a holo trading card.",
+  tags:["card","3d","tilt","perspective","rotate","hover","glare","shine","holographic","holo","trading card","depth","parallax","mouse","cursor","card hover effect","product card"],
+  code:`<div class="tel-tilt-demo">
+  <div class="tel-tilt">
+    <div class="tel-tilt-glare"></div>
+    <h4>3D Tilt</h4>
+    <p>I follow your cursor in 3D.</p>
+  </div>
+</div>
+<style>
+.tel-tilt-demo{display:flex;align-items:center;justify-content:center;min-height:210px;font-family:sans-serif;perspective:800px}
+.tel-tilt{position:relative;width:240px;padding:30px 26px;border-radius:18px;overflow:hidden;
+  background:linear-gradient(145deg,#1c1c2e,#101018);border:1px solid rgba(255,255,255,.12);color:#eee;
+  transform-style:preserve-3d;transition:transform .15s ease-out;will-change:transform}
+.tel-tilt h4{margin:0 0 6px;font-size:18px;transform:translateZ(30px)}
+.tel-tilt p{margin:0;font-size:13px;color:#9a9ab0;transform:translateZ(20px)}
+.tel-tilt-glare{position:absolute;inset:-50%;pointer-events:none;opacity:0;transition:opacity .3s;
+  background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.18) 50%,transparent 60%)}
+.tel-tilt:hover .tel-tilt-glare{opacity:1}
+</style>
+<script>
+document.querySelectorAll('.tel-tilt').forEach(function(card){
+  card.addEventListener('mousemove',function(e){
+    var r=card.getBoundingClientRect();
+    var px=(e.clientX-r.left)/r.width-0.5, py=(e.clientY-r.top)/r.height-0.5;
+    card.style.transform='rotateY('+(px*22)+'deg) rotateX('+(-py*22)+'deg)';
+    var g=card.querySelector('.tel-tilt-glare');
+    if(g) g.style.transform='translateX('+(px*120)+'px) translateY('+(py*120)+'px)';
+  });
+  card.addEventListener('mouseleave',function(){
+    card.style.transition='transform .5s cubic-bezier(.2,.9,.3,1.3)';
+    card.style.transform='rotateY(0) rotateX(0)';
+    setTimeout(function(){card.style.transition='transform .15s ease-out'},500);
+  });
+});
+<\/script>`
+},
+{
+  id:"springy-toggle", cat:"controls",
+  name:"Springy Toggle",
+  desc:"A toggle switch that squashes and stretches like jelly.",
+  tags:["toggle","switch","checkbox","on off","spring","springy","squash","stretch","jelly","bouncy","settings","form","input","control","dark mode toggle"],
+  code:`<div class="tel-toggle-demo">
+  <label class="tel-toggle">
+    <input type="checkbox">
+    <span class="tel-toggle-track"><span class="tel-toggle-thumb"></span></span>
+  </label>
+</div>
+<style>
+.tel-toggle-demo{display:flex;align-items:center;justify-content:center;min-height:200px}
+.tel-toggle{cursor:pointer;display:inline-block}
+.tel-toggle input{display:none}
+.tel-toggle-track{display:flex;align-items:center;width:74px;height:42px;padding:5px;border-radius:999px;
+  background:#3a3a4a;transition:background .35s}
+.tel-toggle-thumb{width:32px;height:32px;border-radius:999px;background:#fff;
+  box-shadow:0 3px 10px rgba(0,0,0,.35);
+  transition:transform .45s cubic-bezier(.3,1.5,.5,1), width .2s}
+.tel-toggle:active .tel-toggle-thumb{width:42px}
+.tel-toggle input:checked + .tel-toggle-track{background:linear-gradient(90deg,#8b7cff,#38bdf8)}
+.tel-toggle input:checked + .tel-toggle-track .tel-toggle-thumb{transform:translateX(32px)}
+.tel-toggle input:checked:active + .tel-toggle-track .tel-toggle-thumb{transform:translateX(22px)}
+</style>`
+},
+{
+  id:"shimmer-button", cat:"buttons",
+  name:"Shimmer Button",
+  desc:"A light sweep glides across the button on repeat. Pure CSS.",
+  tags:["button","shimmer","shine","sweep","gloss","glossy","highlight","premium","cta","call to action","subscribe","get started","animated button","light sweep","metallic","attention"],
+  code:`<div class="tel-shimmer-demo">
+  <button class="tel-shimmer">Get started</button>
+</div>
+<style>
+.tel-shimmer-demo{display:flex;align-items:center;justify-content:center;min-height:200px;font-family:sans-serif}
+.tel-shimmer{position:relative;overflow:hidden;padding:16px 38px;font-size:16px;font-weight:700;color:#fff;
+  border:1px solid rgba(255,255,255,.18);border-radius:999px;cursor:pointer;background:#16161f;
+  transition:transform .15s}
+.tel-shimmer:hover{transform:scale(1.04)}
+.tel-shimmer::after{content:"";position:absolute;top:0;left:-150%;width:60%;height:100%;
+  background:linear-gradient(105deg,transparent,rgba(255,255,255,.35),transparent);
+  transform:skewX(-20deg);animation:tel-shimmer-sweep 2.6s ease-in-out infinite}
+@keyframes tel-shimmer-sweep{0%{left:-150%}55%,100%{left:150%}}
+</style>`
+},
+{
+  id:"border-beam-button", cat:"buttons",
+  name:"Border Beam Button",
+  desc:"A beam of light endlessly traces the button's border.",
+  tags:["button","border","beam","glow","gradient border","rotating","spinning","outline","neon","animated border","cta","fancy button","tron","light","trace","premium"],
+  code:`<div class="tel-beam-demo">
+  <button class="tel-beam"><span class="tel-beam-inner">Hover the glow</span></button>
+</div>
+<style>
+.tel-beam-demo{display:flex;align-items:center;justify-content:center;min-height:200px;font-family:sans-serif}
+.tel-beam{position:relative;padding:2px;border:0;border-radius:999px;cursor:pointer;overflow:hidden;background:#26263a}
+.tel-beam::before{content:"";position:absolute;inset:-100%;
+  background:conic-gradient(from 0deg,transparent 0deg 250deg,#8b7cff 290deg,#38bdf8 320deg,transparent 340deg);
+  animation:tel-beam-spin 3.2s linear infinite}
+.tel-beam-inner{position:relative;display:block;padding:15px 36px;border-radius:999px;background:#12121c;
+  color:#fff;font-size:16px;font-weight:700}
+@keyframes tel-beam-spin{to{transform:rotate(360deg)}}
+</style>`
+},
+{
+  id:"scramble-text", cat:"text",
+  name:"Scramble Text",
+  desc:"Random characters decode into your message. Hover to replay.",
+  notes:"Change the <code>data-text</code> attribute to decode any message. The scramble replays on hover.",
+  tags:["text","scramble","decode","decoder","matrix","hacker","terminal","random characters","reveal","cipher","encrypt","cyberpunk","text effect","heading","animation","tech"],
+  code:`<div class="tel-scramble-demo">
+  <span class="tel-scramble" data-text="DECODING REALITY">DECODING REALITY</span>
+</div>
+<style>
+.tel-scramble-demo{display:flex;align-items:center;justify-content:center;min-height:200px;font-family:monospace}
+.tel-scramble{font-size:32px;font-weight:800;letter-spacing:.04em;color:#00ffc8;cursor:default;white-space:pre}
+</style>
+<script>
+(function(){
+  var el=document.querySelector('.tel-scramble');
+  var target=el.getAttribute('data-text');
+  var chars='!<>-_/[]{}=+*^?#________';
+  var frame=0, timer=null;
+  function scramble(){
+    if(timer) clearInterval(timer);
+    frame=0;
+    timer=setInterval(function(){
+      var out='';
+      for(var i=0;i<target.length;i++){
+        if(target[i]===' '){ out+=' '; continue; }
+        if(i < frame/2.2){ out+=target[i]; }
+        else{ out+=chars[Math.floor(Math.random()*chars.length)]; }
+      }
+      el.textContent=out;
+      frame++;
+      if(frame/2.2>=target.length){ clearInterval(timer); el.textContent=target; }
+    },28);
+  }
+  scramble();
+  el.addEventListener('mouseenter',scramble);
+})();
+<\/script>`
+},
+{
+  id:"wave-text", cat:"text",
+  name:"Wave Text",
+  desc:"Each letter bobs on its own gentle wave, forever.",
+  notes:"Just edit the text inside the <code>tel-wave</code> span — the script splits it into per-letter waves automatically.",
+  tags:["text","wave","wavy","bounce","bouncing","letters","jump","dance","playful","ocean","ripple","text effect","heading","fun","animated text","loop"],
+  code:`<div class="tel-wave-demo">
+  <span class="tel-wave">making waves</span>
+</div>
+<style>
+.tel-wave-demo{display:flex;align-items:center;justify-content:center;min-height:200px;font-family:sans-serif}
+.tel-wave{font-size:40px;font-weight:800;letter-spacing:-.01em;color:#38bdf8;display:inline-flex}
+.tel-wave span{display:inline-block;animation:tel-wave-bob 1.6s ease-in-out infinite;white-space:pre}
+@keyframes tel-wave-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+</style>
+<script>
+(function(){
+  var el=document.querySelector('.tel-wave');
+  var text=el.textContent;
+  el.textContent='';
+  for(var i=0;i<text.length;i++){
+    var s=document.createElement('span');
+    s.textContent=text[i];
+    s.style.animationDelay=(i*0.07)+'s';
+    el.appendChild(s);
+  }
+})();
+<\/script>`
+},
+{
+  id:"glass-card", cat:"cards",
+  name:"Glass Card",
+  desc:"Frosted glass floating over slow-drifting color blobs.",
+  tags:["card","glass","glassmorphism","frosted","blur","backdrop","translucent","transparent","ios","apple","blob","gradient","modern","panel","overlay","aurora"],
+  code:`<div class="tel-glass-demo">
+  <div class="tel-glass-blob tel-glass-blob-a"></div>
+  <div class="tel-glass-blob tel-glass-blob-b"></div>
+  <div class="tel-glass">
+    <h4>Glass Card</h4>
+    <p>Frosted glass over living color.</p>
+  </div>
+</div>
+<style>
+.tel-glass-demo{position:relative;display:flex;align-items:center;justify-content:center;min-height:230px;
+  font-family:sans-serif;overflow:hidden;border-radius:16px}
+.tel-glass-blob{position:absolute;width:200px;height:200px;border-radius:50%;filter:blur(50px);opacity:.8}
+.tel-glass-blob-a{background:#8b7cff;animation:tel-glass-float-a 7s ease-in-out infinite alternate}
+.tel-glass-blob-b{background:#ff2d96;animation:tel-glass-float-b 8s ease-in-out infinite alternate}
+@keyframes tel-glass-float-a{from{transform:translate(-90px,-40px)}to{transform:translate(60px,30px)}}
+@keyframes tel-glass-float-b{from{transform:translate(80px,40px)}to{transform:translate(-60px,-30px)}}
+.tel-glass{position:relative;width:250px;padding:26px;border-radius:18px;color:#fff;
+  background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.25);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  box-shadow:0 8px 32px rgba(0,0,0,.25)}
+.tel-glass h4{margin:0 0 6px;font-size:18px}
+.tel-glass p{margin:0;font-size:13.5px;opacity:.8}
+</style>`
+},
+{
+  id:"star-rating", cat:"controls",
+  name:"Star Rating",
+  desc:"Five stars with hover preview and a satisfying pop on click.",
+  notes:"Set <code>data-count</code> on the <code>tel-stars</code> div for more or fewer stars. Read the chosen value from the <code>value</code> variable in the script.",
+  tags:["rating","stars","star","review","feedback","score","5 stars","rate","input","form","control","interactive","vote","testimonial","ranking"],
+  code:`<div class="tel-stars-demo">
+  <div class="tel-stars" data-count="5"></div>
+</div>
+<style>
+.tel-stars-demo{display:flex;align-items:center;justify-content:center;min-height:200px}
+.tel-stars{display:flex;gap:6px}
+.tel-stars button{background:none;border:0;padding:2px;cursor:pointer;font-size:34px;line-height:1;
+  color:#5a5a6e;transition:color .15s,transform .15s}
+.tel-stars button.hot,.tel-stars button.set{color:#ffd23f}
+.tel-stars button.pop{animation:tel-star-pop .35s cubic-bezier(.3,1.6,.5,1)}
+@keyframes tel-star-pop{40%{transform:scale(1.45) rotate(8deg)}}
+</style>
+<script>
+(function(){
+  var wrap=document.querySelector('.tel-stars');
+  var count=parseInt(wrap.getAttribute('data-count'),10)||5;
+  var value=0, btns=[];
+  function paint(n,cls){ btns.forEach(function(b,i){ b.classList.toggle(cls,i<n); }); }
+  for(var i=1;i<=count;i++){
+    (function(n){
+      var b=document.createElement('button');
+      b.textContent='★';
+      b.setAttribute('aria-label',n+' star'+(n>1?'s':''));
+      b.addEventListener('mouseenter',function(){ paint(n,'hot'); });
+      b.addEventListener('click',function(){
+        value=n; paint(n,'set');
+        btns.forEach(function(x,i){
+          x.classList.remove('pop');
+          if(i<n){ void x.offsetWidth; x.classList.add('pop'); }
+        });
+      });
+      wrap.appendChild(b); btns.push(b);
+    })(i);
+  }
+  wrap.addEventListener('mouseleave',function(){ paint(0,'hot'); });
+})();
+<\/script>`
+},
+{
+  id:"bubble-slider", cat:"controls",
+  name:"Bubble Slider",
+  desc:"A range slider whose value floats above the thumb in a bubble.",
+  notes:"Adjust <code>min</code>, <code>max</code>, and <code>value</code> on the input. The gradient fill and bubble position update automatically.",
+  tags:["slider","range","input","bubble","tooltip","value","drag","control","form","volume","brightness","percentage","settings","picker","handle","track"],
+  code:`<div class="tel-slider-demo">
+  <div class="tel-slider-wrap">
+    <div class="tel-slider-bubble">50</div>
+    <input class="tel-slider" type="range" min="0" max="100" value="50" aria-label="Value">
+  </div>
+</div>
+<style>
+.tel-slider-demo{display:flex;align-items:center;justify-content:center;min-height:200px;font-family:sans-serif}
+.tel-slider-wrap{position:relative;width:260px;padding-top:38px}
+.tel-slider{-webkit-appearance:none;appearance:none;width:100%;height:8px;border-radius:99px;outline:none;display:block;
+  background:linear-gradient(90deg,#8b7cff 0%,#38bdf8 50%,#3a3a4a 50%,#3a3a4a 100%)}
+.tel-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;
+  background:#fff;border:0;box-shadow:0 2px 8px rgba(0,0,0,.4);cursor:pointer;transition:transform .12s}
+.tel-slider::-webkit-slider-thumb:hover{transform:scale(1.15)}
+.tel-slider::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:0;
+  box-shadow:0 2px 8px rgba(0,0,0,.4);cursor:pointer}
+.tel-slider-bubble{position:absolute;top:0;left:50%;transform:translateX(-50%);
+  background:#fff;color:#000;font-size:13px;font-weight:700;padding:4px 10px;border-radius:8px;
+  pointer-events:none}
+.tel-slider-bubble::after{content:"";position:absolute;left:50%;top:100%;transform:translateX(-50%);
+  border:5px solid transparent;border-top-color:#fff}
+</style>
+<script>
+(function(){
+  var s=document.querySelector('.tel-slider');
+  var b=document.querySelector('.tel-slider-bubble');
+  function update(){
+    var min=parseFloat(s.min), max=parseFloat(s.max), v=parseFloat(s.value);
+    var p=(v-min)/(max-min);
+    b.textContent=s.value;
+    b.style.left='calc('+(p*100)+'% + '+((0.5-p)*22)+'px)';
+    s.style.background='linear-gradient(90deg,#8b7cff 0%,#38bdf8 '+(p*100)+'%,#3a3a4a '+(p*100)+'%,#3a3a4a 100%)';
+  }
+  s.addEventListener('input',update);
+  update();
+})();
+<\/script>`
+},
+{
+  id:"orbit-loader", cat:"loaders",
+  name:"Orbit Loader",
+  desc:"Three planets in orbit, pulsing as they spin.",
+  tags:["loader","loading","spinner","orbit","dots","planets","wait","progress","busy","animation","circles","rotate","fetching","pending"],
+  code:`<div class="tel-orbit-demo">
+  <div class="tel-orbit" role="status" aria-label="Loading">
+    <span></span><span></span><span></span>
+  </div>
+</div>
+<style>
+.tel-orbit-demo{display:flex;align-items:center;justify-content:center;min-height:200px}
+.tel-orbit{position:relative;width:64px;height:64px;animation:tel-orbit-spin 1.6s linear infinite}
+.tel-orbit span{position:absolute;width:14px;height:14px;border-radius:50%;
+  animation:tel-orbit-pulse 1.6s ease-in-out infinite}
+.tel-orbit span:nth-child(1){top:0;left:50%;margin-left:-7px;background:#8b7cff}
+.tel-orbit span:nth-child(2){bottom:4px;left:6px;background:#38bdf8;animation-delay:.2s}
+.tel-orbit span:nth-child(3){bottom:4px;right:6px;background:#ff2d96;animation-delay:.4s}
+@keyframes tel-orbit-spin{to{transform:rotate(360deg)}}
+@keyframes tel-orbit-pulse{50%{transform:scale(.6)}}
+</style>`
+},
+{
+  id:"skeleton-card", cat:"loaders",
+  name:"Skeleton Shimmer",
+  desc:"The classic content placeholder with a sliding shimmer.",
+  tags:["skeleton","loading","placeholder","shimmer","content loading","ghost","loader","card","pulse","wait","lazy","preview","grey boxes","ui placeholder"],
+  code:`<div class="tel-skel-demo">
+  <div class="tel-skel" role="status" aria-label="Loading content">
+    <div class="tel-skel-avatar tel-skel-bone"></div>
+    <div class="tel-skel-lines">
+      <div class="tel-skel-bone" style="width:70%"></div>
+      <div class="tel-skel-bone" style="width:100%"></div>
+      <div class="tel-skel-bone" style="width:45%"></div>
+    </div>
+  </div>
+</div>
+<style>
+.tel-skel-demo{display:flex;align-items:center;justify-content:center;min-height:200px}
+.tel-skel{display:flex;gap:16px;width:280px;padding:22px;border-radius:16px;background:#1d1d29;
+  border:1px solid rgba(255,255,255,.1)}
+.tel-skel-avatar{width:52px;height:52px;border-radius:50%;flex:none}
+.tel-skel-lines{flex:1;display:flex;flex-direction:column;gap:10px;justify-content:center}
+.tel-skel-lines .tel-skel-bone{height:12px;border-radius:6px}
+.tel-skel-bone{background:linear-gradient(90deg,#2c2c3d 25%,#42425c 42%,#2c2c3d 60%);
+  background-size:200% 100%;animation:tel-skel-wave 1.4s linear infinite}
+@keyframes tel-skel-wave{from{background-position:200% 0}to{background-position:-200% 0}}
+</style>`
+},
+{
+  id:"progress-ring", cat:"loaders",
+  name:"Progress Ring",
+  desc:"An SVG ring that sweeps to its target with a counting label.",
+  notes:"Set the target with <code>data-value</code> (0–100) on the <code>tel-ring</code> div.",
+  tags:["progress","ring","circle","circular","percent","percentage","donut","gauge","meter","chart","stats","completion","score","dashboard","svg","radial"],
+  code:`<div class="tel-ring-demo">
+  <div class="tel-ring" data-value="75">
+    <svg width="120" height="120" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="tel-ring-grad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#8b7cff"/><stop offset="1" stop-color="#38bdf8"/>
+        </linearGradient>
+      </defs>
+      <circle class="tel-ring-track" cx="60" cy="60" r="52"/>
+      <circle class="tel-ring-fill" cx="60" cy="60" r="52"/>
+    </svg>
+    <span class="tel-ring-label">0%</span>
+  </div>
+</div>
+<style>
+.tel-ring-demo{display:flex;align-items:center;justify-content:center;min-height:210px;font-family:sans-serif}
+.tel-ring{position:relative;width:120px;height:120px}
+.tel-ring svg{transform:rotate(-90deg);display:block}
+.tel-ring circle{fill:none;stroke-width:10;stroke-linecap:round}
+.tel-ring-track{stroke:rgba(128,128,160,.25)}
+.tel-ring-fill{stroke:url(#tel-ring-grad)}
+.tel-ring-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:24px;font-weight:800;color:#8b7cff}
+</style>
+<script>
+(function(){
+  var ring=document.querySelector('.tel-ring');
+  var fill=ring.querySelector('.tel-ring-fill');
+  var label=ring.querySelector('.tel-ring-label');
+  var value=Math.min(100,parseFloat(ring.getAttribute('data-value'))||0);
+  var C=2*Math.PI*52;
+  fill.style.strokeDasharray=C;
+  fill.style.strokeDashoffset=C;
+  var t0=null, dur=1600;
+  function step(t){
+    if(!t0) t0=t;
+    var p=Math.min((t-t0)/dur,1);
+    var eased=1-Math.pow(1-p,3);
+    var cur=value*eased;
+    fill.style.strokeDashoffset=C*(1-cur/100);
+    label.textContent=Math.round(cur)+'%';
+    if(p<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+})();
+<\/script>`
+}
+];
+
+/* ============ HELPERS ============ */
+const $ = s => document.querySelector(s);
+const LS_REQ = "tel_requests";
+
+function previewDoc(code){
+  return '<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:transparent;overflow:hidden;height:100%}'
+    +'@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}'
+    +'</style></head><body>'+code+'</body></html>';
+}
+
+/* ============ RENDER (Pinterest-style masonry, live lazy-loaded previews) ============ */
+// varied tile heights for the masonry rhythm, deterministic per position
+const RATIOS = ["4/3","3/4","1/1","4/5","16/10","3/4","1/1","4/3","4/5","16/10"];
+
+// Lazy-load tile previews: srcdoc is only set when the tile nears the viewport
+const previewObserver = new IntersectionObserver(entries=>{
+  entries.forEach(en=>{
+    if(!en.isIntersecting) return;
+    const frame = en.target;
+    frame.srcdoc = previewDoc(frame.dataset.code);
+    frame.addEventListener("load", ()=>frame.classList.add("loaded"), {once:true});
+    previewObserver.unobserve(frame);
+  });
+},{rootMargin:"300px"});
+
+function itemCard(w, i){
+  const el = document.createElement("div");
+  el.className = "item";
+  el.style.animationDelay = (i*40)+"ms";
+  el.setAttribute("role","button");
+  el.setAttribute("tabindex","0");
+  el.setAttribute("aria-label","Open "+w.name+" — preview and copy the code");
+  el.innerHTML = '<div class="thumb"></div><div class="name"></div><div class="price">Free</div>';
+  el.querySelector(".thumb").style.aspectRatio = RATIOS[i % RATIOS.length];
+  el.querySelector(".name").textContent = w.name;
+
+  const frame = document.createElement("iframe");
+  frame.setAttribute("title", w.name+" live preview");
+  frame.setAttribute("sandbox","allow-scripts");
+  frame.setAttribute("tabindex","-1");
+  frame.setAttribute("aria-hidden","true");
+  frame.dataset.code = w.code;
+  el.querySelector(".thumb").appendChild(frame);
+  previewObserver.observe(frame);
+
+  el.addEventListener("click", ()=>openModal(w, el));
+  el.addEventListener("keydown", e=>{
+    if(e.key==="Enter" || e.key===" "){ e.preventDefault(); openModal(w, el); }
+  });
+  return el;
+}
+function renderBrowse(cat){
+  const feed = $("#masonry");
+  feed.innerHTML = "";
+  const list = (!cat || cat==="all") ? WIDGETS : WIDGETS.filter(w=>w.cat===cat);
+  list.forEach((w,i)=>feed.appendChild(itemCard(w,i)));
+}
+
+/* ============ CATEGORY SUBNAV ============ */
+function showBrowse(cat){
+  document.querySelectorAll(".subnav .cat").forEach(x=>x.classList.toggle("active", x.dataset.cat===(cat||"all")));
+  renderBrowse(cat);
+  $("#search").value=""; $("#clearBtn").style.display="none";
+  $("#browseWrap").style.display=""; $("#resultsWrap").style.display="none";
+}
+document.querySelectorAll(".subnav .cat[data-cat]").forEach(a=>{
+  a.addEventListener("click", ()=>showBrowse(a.dataset.cat));
+});
+function focusSearch(){
+  window.scrollTo({top:0,behavior:"smooth"});
+  setTimeout(()=>$("#search").focus(), 350);
+}
+$("#searchToggle").addEventListener("click", focusSearch);
+$("#navRequest").addEventListener("click", e=>{ e.preventDefault(); focusSearch(); });
+$("#brandHome").addEventListener("click", e=>{ e.preventDefault(); showBrowse("all"); window.scrollTo({top:0,behavior:"smooth"}); });
+$("#navWidgets").addEventListener("click", e=>{ e.preventDefault(); showBrowse("all"); window.scrollTo({top:0,behavior:"smooth"}); });
+
+/* ============ NATURAL-LANGUAGE SEARCH ============ */
+const STOP = new Set(("a an the i my me your you we it its this that these those of for to in on at with and or is are was be can could should would will want need wants needs make makes making build get give show something some thing things like when where how what which please really very just kind sort type effect element component widget").split(" "));
+
+function tokens(str){
+  return str.toLowerCase().replace(/[^a-z0-9\s-]/g," ").split(/[\s-]+/).filter(t=>t && !STOP.has(t));
+}
+function lev(a,b){
+  if(Math.abs(a.length-b.length)>2) return 99;
+  const m=[...Array(a.length+1)].map((_,i)=>[i,...Array(b.length).fill(0)]);
+  for(let j=0;j<=b.length;j++) m[0][j]=j;
+  for(let i=1;i<=a.length;i++) for(let j=1;j<=b.length;j++)
+    m[i][j]=Math.min(m[i-1][j]+1, m[i][j-1]+1, m[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+  return m[a.length][b.length];
+}
+function stem(t){ return t.replace(/(ing|ed|es|s)$/,""); }
+
+WIDGETS.forEach(w=>{
+  const bag = new Set();
+  tokens(w.name).forEach(t=>{bag.add(t);bag.add(stem(t))});
+  tokens(w.desc).forEach(t=>{bag.add(t);bag.add(stem(t))});
+  w.tags.forEach(tag=>tokens(tag).forEach(t=>{bag.add(t);bag.add(stem(t))}));
+  w._bag = [...bag].filter(Boolean);
+  w._phrases = w.tags.map(t=>t.toLowerCase());
+});
+
+function score(w, qTokens, qRaw){
+  let s = 0, matched = 0, phrase = false;
+  // Whole-phrase bonus — multi-word tags only, so a single word inside a
+  // longer query ("...slider") can't masquerade as full intent
+  if(w._phrases.some(p=>p.includes(" ") && (qRaw.includes(p) || p.includes(qRaw)))){ s += 5; phrase = true; }
+  qTokens.forEach(qt=>{
+    const qs = stem(qt);
+    let best = 0;
+    for(const bt of w._bag){
+      if(bt===qt || bt===qs){ best = Math.max(best,4); break; }
+      if(bt.startsWith(qs) || qs.startsWith(bt)) best = Math.max(best,2.5);
+      else if(bt.includes(qs) && qs.length>3) best = Math.max(best,2);
+      else if(qs.length>3 && lev(qs,bt)<=1) best = Math.max(best,2);
+      else if(qs.length>5 && lev(qs,bt)<=2) best = Math.max(best,1.5);
+    }
+    if(best > 0) matched++;
+    s += best;
+  });
+  return {s, matched, phrase};
+}
+
+function search(query){
+  const qRaw = query.trim().toLowerCase();
+  if(!qRaw){
+    $("#browseWrap").style.display = "";
+    $("#resultsWrap").style.display = "none";
+    return;
+  }
+  const qTokens = tokens(qRaw);
+  // Precision guard: multi-token queries must match at least half their
+  // meaningful tokens (or a whole tag phrase) — one stray word isn't intent.
+  const scored = WIDGETS.map(w=>{
+    const r = score(w,qTokens,qRaw);
+    return {w, s:r.s, ok: r.s >= 2 && (r.phrase || qTokens.length < 2 || r.matched/qTokens.length >= 0.5)};
+  })
+    .filter(x=>x.ok)
+    .sort((a,b)=>b.s-a.s);
+  $("#browseWrap").style.display = "none";
+  $("#resultsWrap").style.display = "block";
+  const grid = $("#gridResults");
+  grid.innerHTML = "";
+  scored.forEach((x,i)=>grid.appendChild(itemCard(x.w,i)));
+  $("#resultsTitle").textContent = scored.length ? "Results" : "No results";
+  $("#resultsCount").textContent = scored.length ? scored.length+" widget"+(scored.length===1?"":"s") : "";
+  $("#noResults").style.display = scored.length ? "none" : "block";
+  if(!scored.length){
+    $("#reqWhat").value = query;
+    $("#reqSent").style.display = "none";
+    $("#reqForm").style.display = "block";
+  }
+}
+
+let debounce;
+$("#search").addEventListener("input", e=>{
+  clearTimeout(debounce);
+  $("#clearBtn").style.display = e.target.value ? "block" : "none";
+  debounce = setTimeout(()=>search(e.target.value), 220);
+});
+$("#clearBtn").addEventListener("click", ()=>{
+  $("#search").value = ""; $("#clearBtn").style.display="none"; search("");
+});
+
+/* ============ MODAL ============ */
+let currentWidget = null;
+let modalOpener = null; // element to restore focus to on close
+function openModal(w, opener){
+  currentWidget = w;
+  modalOpener = opener || null;
+  $("#mTitle").textContent = w.name;
+  $("#mDesc").textContent = w.desc;
+  const notes = $("#mNotes");
+  if(w.notes){ notes.innerHTML = "<strong>Customize:</strong> "+w.notes; notes.hidden = false; }
+  else notes.hidden = true;
+  $("#mFrame").srcdoc = previewDoc(w.code);
+  $("#mCode").textContent = w.code;
+  $("#overlay").classList.add("open");
+  document.body.style.overflow = "hidden";
+  history.replaceState(null, "", "#"+w.id);
+  $("#mClose").focus();
+}
+function closeModal(){
+  if(!$("#overlay").classList.contains("open")) return;
+  $("#overlay").classList.remove("open");
+  $("#mFrame").srcdoc = "";
+  document.body.style.overflow = "";
+  history.replaceState(null, "", location.pathname + location.search);
+  if(modalOpener){ modalOpener.focus(); modalOpener = null; }
+}
+$("#mClose").addEventListener("click", closeModal);
+$("#overlay").addEventListener("click", e=>{ if(e.target===$("#overlay")) closeModal(); });
+document.addEventListener("keydown", e=>{
+  if(e.key==="Escape") closeModal();
+  // Keep Tab inside the modal while it's open
+  if(e.key==="Tab" && $("#overlay").classList.contains("open")){
+    const focusables = $("#overlay").querySelectorAll("button, [href], input, [tabindex]:not([tabindex='-1'])");
+    const first = focusables[0], last = focusables[focusables.length-1];
+    if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); }
+    else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); }
+  }
+});
+
+/* Per-widget shareable URLs: #widget-id opens its modal directly */
+function openFromHash(){
+  const id = location.hash.slice(1);
+  if(!id) return;
+  const w = WIDGETS.find(x=>x.id===id);
+  if(w) openModal(w);
+}
+window.addEventListener("hashchange", openFromHash);
+
+$("#shareBtn").addEventListener("click", async ()=>{
+  if(!currentWidget) return;
+  const url = location.origin + location.pathname + "#" + currentWidget.id;
+  try{
+    await navigator.clipboard.writeText(url);
+  }catch(_){
+    const ta=document.createElement("textarea");
+    ta.value=url; document.body.appendChild(ta);
+    ta.select(); document.execCommand("copy"); ta.remove();
+  }
+  toast("Link copied");
+});
+
+$("#copyBtn").addEventListener("click", async ()=>{
+  if(!currentWidget) return;
+  try{
+    await navigator.clipboard.writeText(currentWidget.code);
+  }catch(_){
+    const ta=document.createElement("textarea");
+    ta.value=currentWidget.code; document.body.appendChild(ta);
+    ta.select(); document.execCommand("copy"); ta.remove();
+  }
+  toast("Copied to clipboard");
+});
+
+function toast(msg){
+  const t=$("#toast"); t.textContent=msg; t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"), 2200);
+}
+
+/* ============ REQUEST LOG ============ */
+$("#reqForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const entry = {
+    ts: new Date().toISOString(),
+    query: $("#search").value.trim(),
+    what: $("#reqWhat").value.trim(),
+    why: $("#reqWhy").value.trim(),
+    email: $("#reqEmail").value.trim()
+  };
+  const log = JSON.parse(localStorage.getItem(LS_REQ)||"[]");
+  log.push(entry);
+  localStorage.setItem(LS_REQ, JSON.stringify(log));
+  if(FORMSPREE_ENDPOINT){
+    try{
+      await fetch(FORMSPREE_ENDPOINT,{
+        method:"POST",
+        headers:{"Content-Type":"application/json","Accept":"application/json"},
+        body:JSON.stringify(entry)
+      });
+    }catch(_){/* still logged locally */}
+  }
+  $("#reqForm").style.display = "none";
+  $("#reqSent").style.display = "block";
+  $("#reqForm").reset();
+  renderAdmin();
+});
+
+/* ============ ADMIN (?admin=1) ============ */
+const isAdmin = new URLSearchParams(location.search).get("admin")==="1";
+function renderAdmin(){
+  if(!isAdmin) return;
+  $("#admin").style.display = "block";
+  const log = JSON.parse(localStorage.getItem(LS_REQ)||"[]").slice().reverse();
+  const rows = $("#adminRows");
+  rows.innerHTML = "";
+  if(!log.length){
+    rows.innerHTML = '<tr><td colspan="5" class="empty">No requests yet.</td></tr>';
+    return;
+  }
+  log.forEach(r=>{
+    const tr=document.createElement("tr");
+    [new Date(r.ts).toLocaleString(), r.query||"—", r.what||"—", r.why||"—", r.email||"—"]
+      .forEach(v=>{const td=document.createElement("td");td.textContent=v;tr.appendChild(td);});
+    rows.appendChild(tr);
+  });
+}
+if(isAdmin){
+  renderAdmin();
+  $("#exportBtn").addEventListener("click", ()=>{
+    const blob = new Blob([localStorage.getItem(LS_REQ)||"[]"],{type:"application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "widget-requests.json";
+    a.click();
+  });
+  $("#clearLogBtn").addEventListener("click", ()=>{
+    if(confirm("Clear all logged requests?")){
+      localStorage.removeItem(LS_REQ);
+      renderAdmin();
+    }
+  });
+}
+
+/* ============ INIT ============ */
+renderBrowse();
+openFromHash();
+</script>
+</body>
+</html>
