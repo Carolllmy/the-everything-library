@@ -1057,6 +1057,459 @@ document.querySelectorAll('.tel-tilt').forEach(function(card){
   animation:tel-wd-fore .38s ease-in-out infinite;will-change:transform}
 @keyframes tel-wd-fore{0%,100%{transform:rotate(-58deg)}50%{transform:rotate(58deg)}}
 </style>`
+},
+{
+  id:"lava-lamp", cat:"decorations",
+  name:"Lava Lamp",
+  desc:"A photorealistic lava lamp rendered in real time with a WebGL2 shader — raymarched wax blobs, refracting glass, brushed-metal base. Floats on a transparent background, so it drops onto any site.",
+  notes:"This is a single real-time <strong>WebGL2 fragment shader</strong> (signed-distance metaballs for the wax, analytic glass + brushed-metal shading), not a video — it needs a browser with WebGL2 (every current browser). The scene is composited with a transparent background plus a soft warm glow, so the lamp floats over any page color. Tune the look at the top of the shader: <code>WAX_TINT</code> (blob color), <code>METAL_TONE</code> (cool↔warm base), <code>GLOW_FEATHER</code>. Honors <code>prefers-reduced-motion</code> by holding a still frame. Size it with the <code>.tel-lava-stage</code> width/height.",
+  tags:["lava lamp","lamp","decoration","retro","70s","groovy","blob","wax","metaball","liquid","bubbles","glow","ambient","mood lighting","webgl","shader","photorealistic","floating","animated","transparent"],
+  code:`<div class="tel-lava-demo">
+  <div class="tel-lava-stage">
+    <canvas class="tel-lava-canvas"></canvas>
+  </div>
+</div>
+<style>
+.tel-lava-demo{display:flex;align-items:center;justify-content:center;min-height:300px;background:transparent}
+.tel-lava-stage{position:relative;width:232px;height:296px}
+.tel-lava-canvas{width:100%;height:100%;display:block}
+</style>
+<script type="x-shader/x-vertex" id="tel-lava-vs">#version 300 es
+in vec2 p;
+void main(){ gl_Position = vec4(p, 0.0, 1.0); }
+<\/script>
+<script type="x-shader/x-fragment" id="tel-lava-fs">#version 300 es
+precision highp float;
+out vec4 O;
+uniform float T;
+uniform vec2 R;
+
+#define PI 3.14159265359
+#define WAX_TINT vec3(1.0, 0.30588, 0.00784)
+#define BG_DARKNESS 1.0
+#define METAL_TONE 0.72
+#define GLOW_FEATHER 0.22
+
+float saturate(float x){ return clamp(x, 0.0, 1.0); }
+
+float smin(float a, float b, float k){
+  float h = max(k - abs(a - b), 0.0) / k;
+  return min(a, b) - h * h * k * 0.25;
+}
+
+float hash(float n){ return fract(sin(n) * 43758.5453123); }
+
+float noise(vec2 p){
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  float a = hash(i.x + i.y * 57.0);
+  float b = hash(i.x + 1.0 + i.y * 57.0);
+  float c = hash(i.x + (i.y + 1.0) * 57.0);
+  float d = hash(i.x + 1.0 + (i.y + 1.0) * 57.0);
+  return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
+vec3 bgColor(vec2 uv){
+  vec3 top = vec3(0.015, 0.014, 0.015);
+  vec3 mid = vec3(0.038, 0.036, 0.037);
+  vec3 bottom = vec3(0.024, 0.022, 0.023);
+  float gy = smoothstep(0.95, -0.25, uv.y);
+  vec3 col = mix(top, mid, gy);
+  col = mix(col, bottom, smoothstep(-0.58, -1.0, uv.y));
+  float vignette = length(uv * vec2(0.74, 0.52));
+  col *= 1.0 - vignette * 0.38;
+  float warmSpot = exp(-dot((uv - vec2(0.0, -0.05)) * vec2(0.96, 1.34), (uv - vec2(0.0, -0.05)) * vec2(0.96, 1.34)) * 2.1);
+  col += vec3(0.0050, 0.0034, 0.0018) * warmSpot;
+  col *= BG_DARKNESS;
+  return col;
+}
+
+float bottleRadius(float y, float bottom, float top){
+  float t = saturate((y - bottom) / (top - bottom));
+  float r = mix(0.165, 0.060, t);
+  r += sin(t * PI) * 0.006;
+  r += exp(-pow((t - 0.18) * 5.0, 2.0)) * 0.004;
+  return r;
+}
+
+float upperBaseRadius(float y, float waist, float top){
+  float t = saturate((y - waist) / (top - waist));
+  float r = mix(0.082, 0.182, t);
+  r += sin(t * PI) * 0.006;
+  return r;
+}
+
+float lowerBaseRadius(float y, float bottom, float waist){
+  float t = saturate((y - bottom) / (waist - bottom));
+  float r = mix(0.170, 0.082, t);
+  r += sin(t * PI) * 0.004;
+  return r;
+}
+
+float capRadius(float y, float bottom, float top){
+  float t = saturate((y - bottom) / (top - bottom));
+  return mix(0.066, 0.018, pow(t, 0.82));
+}
+
+float blobs(vec2 p, float t){
+  float d = 1e9;
+  float slowT = t * 0.38;
+  float breathe = sin(slowT * 0.55) * 0.5 + 0.5;
+  float release = sin(slowT * 0.32 + 1.4) * 0.5 + 0.5;
+  for (int i = 0; i < 6; i++){
+    float fi = float(i);
+    float phase = fi * 0.9 + t * 0.05;
+    float cycle = mod(phase, PI * 2.0);
+    float rise = sin(cycle) * 0.32;
+    rise += sin(phase * 0.4) * 0.08;
+    float drift = sin(t * 0.025 + fi * 1.5) * 0.06;
+    vec2 center = vec2(drift, rise);
+    float size = 0.065 + sin(fi * 1.1 + t * 0.06) * 0.02;
+    vec2 stretch = vec2(1.0, 1.0 + abs(cos(cycle)) * 0.25);
+    vec2 dp = (p - center) * stretch;
+    d = smin(d, length(dp) - size, 0.1);
+  }
+  float poolWidth = mix(0.216, 0.236, breathe);
+  float poolHeight = mix(0.098, 0.110, breathe);
+  vec2 poolP = p - vec2(sin(slowT * 0.22) * 0.004, -0.392 + breathe * 0.004);
+  float pool = length(poolP / vec2(poolWidth, poolHeight)) - 1.0;
+  pool *= poolHeight;
+  pool = max(pool, p.y + 0.305 - breathe * 0.006);
+  float moundWidth = mix(0.102, 0.114, breathe);
+  float moundHeight = mix(0.055, 0.066, breathe);
+  float poolMound = length((p - vec2(0.0, -0.356 + breathe * 0.006)) / vec2(moundWidth, moundHeight)) - 1.0;
+  poolMound *= moundHeight;
+  vec2 feederCenter = vec2(sin(slowT * 0.18) * 0.006, mix(-0.31, -0.24, release));
+  vec2 feederRadius = vec2(mix(0.024, 0.034, release), mix(0.072, 0.11, release));
+  float feeder = length((p - feederCenter) / feederRadius) - 1.0;
+  feeder *= feederRadius.x;
+  feeder = max(feeder, p.y + 0.34);
+  vec2 budCenter = vec2(sin(slowT * 0.24) * 0.01, mix(-0.22, -0.16, release));
+  vec2 budRadius = vec2(mix(0.024, 0.042, release), mix(0.03, 0.055, release));
+  float bud = length((p - budCenter) / budRadius) - 1.0;
+  bud *= budRadius.x;
+  d = smin(d, pool, 0.10);
+  d = smin(d, poolMound, 0.06);
+  d = smin(d, feeder, 0.05);
+  d = smin(d, bud, 0.05);
+  return d;
+}
+
+vec3 metalShade(float nx, float ny, float heightMix, float warmBounce){
+  vec3 coolDark = vec3(0.014, 0.015, 0.018);
+  vec3 coolMid = vec3(0.042, 0.047, 0.056);
+  vec3 coolHi = vec3(0.115, 0.125, 0.145);
+  vec3 warmDark = vec3(0.018, 0.014, 0.012);
+  vec3 warmMid = vec3(0.060, 0.044, 0.030);
+  vec3 warmHi = vec3(0.150, 0.104, 0.064);
+  vec3 baseDark = mix(coolDark, warmDark, METAL_TONE);
+  vec3 bronzeMid = mix(coolMid, warmMid, METAL_TONE);
+  vec3 bronzeHi = mix(coolHi, warmHi, METAL_TONE);
+  vec3 neutralBright = mix(vec3(0.88, 0.90, 0.95), vec3(0.98, 0.96, 0.91), METAL_TONE);
+  vec3 neutralNeedle = mix(vec3(0.95, 0.97, 1.0), vec3(1.0, 0.98, 0.94), METAL_TONE);
+  vec3 coolBand = mix(vec3(0.46, 0.50, 0.56), vec3(0.42, 0.45, 0.48), METAL_TONE);
+  vec3 rightBright = mix(vec3(0.76, 0.80, 0.88), vec3(0.82, 0.79, 0.74), METAL_TONE);
+  vec3 edgeBright = mix(vec3(0.94, 0.96, 1.0), vec3(0.98, 0.96, 0.92), METAL_TONE);
+  vec3 warmBounceColor = mix(vec3(0.20, 0.24, 0.30), vec3(0.42, 0.20, 0.04), METAL_TONE);
+  vec3 tableBounceColor = mix(vec3(0.14, 0.18, 0.24), vec3(0.30, 0.16, 0.04), METAL_TONE);
+  float cylindrical = sqrt(saturate(1.0 - nx * nx));
+  float absNx = abs(nx);
+  float stripLSoft = exp(-pow((nx + 0.74) * 9.0, 2.0));
+  float stripLTight = exp(-pow((nx + 0.53) * 46.0, 2.0));
+  float stripLNeedle = exp(-pow((nx + 0.47) * 115.0, 2.0));
+  float stripLCool = exp(-pow((nx + 0.31) * 18.0, 2.0));
+  float stripCenterWarm = exp(-pow((nx - 0.02) * 8.5, 2.0));
+  float stripRSoft = exp(-pow((nx - 0.60) * 18.0, 2.0));
+  float stripRTight = exp(-pow((nx - 0.80) * 58.0, 2.0));
+  float stripRNeedle = exp(-pow((nx - 0.86) * 130.0, 2.0));
+  float coreShadow = exp(-pow((nx + 0.00) * 3.2, 2.0));
+  float shoulderShadow = exp(-pow((nx + 0.18) * 7.0, 2.0));
+  float rightRoll = exp(-pow((nx - 0.42) * 8.0, 2.0));
+  float edgeBevel = exp(-pow((absNx - 0.985) * 180.0, 2.0));
+  float edgeShoulder = exp(-pow((absNx - 0.88) * 26.0, 2.0));
+  float edgeTrough = exp(-pow((absNx - 0.76) * 16.0, 2.0));
+  float edgeLift = smoothstep(0.72, 1.0, absNx);
+  float tableBounce = exp(-pow((nx + 0.03) * 4.5, 2.0)) * (1.0 - heightMix);
+  float skyLift = heightMix * 0.08;
+  vec3 col = mix(baseDark, bronzeMid, cylindrical * 0.64 + heightMix * 0.08);
+  col += mix(vec3(0.30, 0.32, 0.36), vec3(0.34, 0.33, 0.31), METAL_TONE) * stripLSoft * 0.10;
+  col += neutralBright * stripLTight * 0.10;
+  col += neutralNeedle * stripLNeedle * 0.045;
+  col += coolBand * stripLCool * 0.045;
+  col += bronzeHi * stripCenterWarm * 0.26;
+  col += mix(vec3(0.10, 0.11, 0.13), vec3(0.12, 0.11, 0.10), METAL_TONE) * stripRSoft * 0.08;
+  col += rightBright * stripRTight * 0.045;
+  col += mix(vec3(0.88, 0.92, 0.98), vec3(0.92, 0.91, 0.88), METAL_TONE) * stripRNeedle * 0.022;
+  col += mix(vec3(0.10, 0.11, 0.13), vec3(0.10, 0.09, 0.085), METAL_TONE) * rightRoll * 0.06;
+  col -= vec3(0.050, 0.040, 0.032) * coreShadow;
+  col -= vec3(0.024, 0.020, 0.016) * shoulderShadow;
+  col -= vec3(0.030, 0.024, 0.020) * edgeTrough * 0.42;
+  col += mix(vec3(0.054, 0.058, 0.068), vec3(0.050, 0.052, 0.056), METAL_TONE) * skyLift;
+  col += tableBounceColor * tableBounce * 0.32;
+  col += warmBounceColor * warmBounce;
+  col += mix(vec3(0.28, 0.30, 0.34), vec3(0.30, 0.29, 0.27), METAL_TONE) * edgeShoulder * 0.10;
+  col += edgeBright * edgeBevel * 0.08;
+  col += mix(vec3(0.20, 0.22, 0.26), vec3(0.22, 0.21, 0.20), METAL_TONE) * edgeLift * 0.03;
+  float brushedFine = (noise(vec2(nx * 2.5, ny * 820.0)) - 0.5) * 0.008;
+  float brushedMicro = (noise(vec2(nx * 1.4 + 40.0, ny * 1650.0)) - 0.5) * 0.004;
+  float brushedWide = (noise(vec2(nx * 8.0, ny * 140.0 + 14.0)) - 0.5) * 0.0035;
+  col += brushedFine + brushedMicro + brushedWide;
+  col = max(col, vec3(0.003));
+  return col;
+}
+
+void main(){
+  vec2 uv = (gl_FragCoord.xy - 0.5 * R) / R.y;
+  uv *= 1.82;
+  uv.y -= 0.10;
+
+  vec3 col = bgColor(uv);
+
+  float lampTop = 0.48;
+  float lampBottom = -0.36;
+  float waistY = -0.57;
+  float baseBottom = -0.76;
+  float capTop = 0.665;
+  float glassThickness = 0.012;
+
+  float bottleR = bottleRadius(uv.y, lampBottom, lampTop);
+  float innerBottleR = bottleR - glassThickness;
+  float bottleMask = step(abs(uv.x), bottleR) * step(lampBottom, uv.y) * step(uv.y, lampTop);
+  float innerBottleMask = step(abs(uv.x), innerBottleR) * step(lampBottom + 0.004, uv.y) * step(uv.y, lampTop - 0.004);
+
+  float upperR = upperBaseRadius(uv.y, waistY, lampBottom);
+  float lowerR = lowerBaseRadius(uv.y, baseBottom, waistY);
+  bool inUpperBase = uv.y >= waistY && uv.y <= lampBottom && abs(uv.x) <= upperR;
+  bool inLowerBase = uv.y >= baseBottom && uv.y < waistY && abs(uv.x) <= lowerR;
+  bool inCap = uv.y >= lampTop && uv.y <= capTop && abs(uv.x) <= capRadius(uv.y, lampTop, capTop);
+
+  vec3 waxTint = max(WAX_TINT, vec3(0.001));
+  vec3 glowTint = mix(waxTint, vec3(1.0, 0.58, 0.08), 0.22);
+  vec3 hotTint = mix(glowTint, vec3(1.0, 0.74, 0.14), 0.18);
+  float feather = max(GLOW_FEATHER, 0.001);
+
+  float bulbGlow = exp(-pow(uv.x * (10.0 / feather), 2.0) - pow((uv.y - (lampBottom + 0.03)) * (10.5 / feather), 2.0));
+  col += glowTint * bulbGlow * 0.16;
+
+  if (inLowerBase){
+    float nx = uv.x / max(lowerR, 0.0001);
+    float heightMix = saturate((uv.y - baseBottom) / (waistY - baseBottom));
+    float warmBounce = exp(-pow(nx * 1.8, 2.0)) * smoothstep(baseBottom, lampBottom, uv.y) * 0.14;
+    vec3 m = metalShade(nx, uv.y, heightMix, warmBounce);
+    float floorRim = exp(-pow((uv.y - baseBottom - 0.004) * 44.0, 2.0)) * (0.35 + abs(nx) * 0.45);
+    float waistPinch = exp(-pow((uv.y - waistY + 0.006) * 36.0, 2.0)) * (1.0 - abs(nx) * 0.35);
+    m += vec3(0.70, 0.68, 0.62) * floorRim * 0.030;
+    m -= vec3(0.030, 0.024, 0.020) * waistPinch * 0.45;
+    col = m;
+  }
+
+  if (inUpperBase){
+    float nx = uv.x / max(upperR, 0.0001);
+    float heightMix = saturate((uv.y - waistY) / (lampBottom - waistY));
+    float warmBounce = exp(-pow(nx * 1.7, 2.0)) * (0.08 + heightMix * 0.09);
+    vec3 m = metalShade(nx, uv.y, 0.4 + heightMix * 0.6, warmBounce);
+    float collarLip = exp(-pow((uv.y - lampBottom + 0.006) * 42.0, 2.0)) * (0.45 + (1.0 - abs(nx)) * 0.35);
+    float waistPinch = exp(-pow((uv.y - waistY - 0.002) * 34.0, 2.0)) * (1.0 - abs(nx) * 0.40);
+    m += vec3(0.82, 0.78, 0.70) * collarLip * 0.035;
+    m -= vec3(0.032, 0.026, 0.021) * waistPinch * 0.35;
+    m += vec3(0.14, 0.07, 0.018) * exp(-pow((uv.y - lampBottom + 0.01) * 30.0, 2.0)) * 0.55;
+    col = m;
+  }
+
+  if (inCap){
+    float capR = capRadius(uv.y, lampTop, capTop);
+    float nx = uv.x / max(capR, 0.0001);
+    float ct = saturate((uv.y - lampTop) / (capTop - lampTop));
+    vec3 capCol = metalShade(nx, uv.y, 0.82 - ct * 0.22, 0.015 * (1.0 - ct));
+    float capLip = exp(-pow((uv.y - lampTop - 0.004) * 48.0, 2.0)) * (0.40 + (1.0 - abs(nx)) * 0.40);
+    float capNeedle = exp(-pow((nx + 0.46) * 86.0, 2.0)) * (1.0 - ct * 0.2);
+    capCol += vec3(0.78, 0.75, 0.70) * capLip * 0.028;
+    capCol += vec3(0.95, 0.93, 0.88) * capNeedle * 0.030;
+    capCol *= 1.0 - ct * 0.12;
+    col = capCol;
+  }
+
+  if (bottleMask > 0.5){
+    float nx = uv.x / max(bottleR, 0.0001);
+    float center = 1.0 - abs(nx);
+    float bodyT = saturate((uv.y - lampBottom) / (lampTop - lampBottom));
+    float highlightBend = (bodyT - 0.5) * 0.035;
+    float imperfection = (noise(vec2(nx * 24.0 + 20.0, uv.y * 180.0 + 7.0)) - 0.5) * 0.010;
+    float curvature = sqrt(saturate(1.0 - nx * nx));
+    vec3 refractedBg = bgColor(uv + vec2(-uv.x * (0.034 + center * 0.008) - nx * 0.006 + imperfection * 0.34, (0.5 - center) * 0.002 + imperfection * 0.12));
+    vec3 studioFill = vec3(0.010, 0.010, 0.012);
+    vec3 transmittedBg = mix(studioFill, refractedBg, 0.030 + curvature * 0.036);
+    transmittedBg += vec3(0.0008, 0.00075, 0.00095);
+    vec3 liquid = transmittedBg * 0.078 + vec3(0.00110, 0.00110, 0.00135);
+    float interiorGlow = exp(-(uv.y - lampBottom + 0.02) * (10.2 / feather));
+    liquid += glowTint * interiorGlow * 0.042;
+    if (innerBottleMask > 0.5){
+      vec2 blobUV = uv;
+      blobUV.y = (blobUV.y - lampBottom) / (lampTop - lampBottom) * 0.95 - 0.48;
+      blobUV.x *= 1.4;
+      float d = blobs(blobUV, T);
+      float innerClip = innerBottleR - abs(uv.x);
+      d = max(d, -innerClip + 0.004);
+      if (d < 0.0){
+        float depth = min(-d, 0.16);
+        float edge = smoothstep(0.02, 0.0, abs(d));
+        float core = smoothstep(0.0, 0.075, depth);
+        float molten = smoothstep(0.01, 0.11, depth);
+        float verticalHeat = smoothstep(0.22, -0.45, blobUV.y);
+        float hotCore = molten * (0.58 + verticalHeat * 0.42);
+        float emberPocket = exp(-pow(blobUV.x * 3.0, 2.0)) * smoothstep(0.15, -0.42, blobUV.y);
+        vec3 amberEdge = waxTint * vec3(0.98, 0.34, 0.05);
+        vec3 amberMid = mix(waxTint, vec3(1.0, 0.28, 0.00), 0.12);
+        vec3 amberCore = mix(waxTint, vec3(1.0, 0.68, 0.06), 0.20);
+        vec3 wax = mix(amberEdge, amberMid, molten);
+        wax = mix(wax, amberCore, hotCore * 0.92);
+        float sss = exp(-depth * 16.0);
+        wax += glowTint * sss * 0.30;
+        wax += waxTint * verticalHeat * 0.46;
+        wax += hotTint * edge * 0.20;
+        wax += hotTint * emberPocket * 0.26;
+        float leftSpec = exp(-pow((blobUV.x + 0.035) * 22.0, 2.0)) * exp(-pow((blobUV.y - 0.02) * 4.5, 2.0));
+        wax += mix(vec3(1.0, 0.78, 0.28), hotTint, 0.72) * leftSpec * 0.10;
+        float shellDark = smoothstep(0.0, 0.030, depth);
+        wax *= mix(0.94, 1.04, shellDark);
+        liquid = wax * 2.10;
+      } else if (d < 0.10){
+        float halo = smoothstep(0.10 * feather, 0.0, d);
+        halo = pow(halo, 1.05);
+        liquid += glowTint * halo * 0.11;
+        liquid += hotTint * halo * halo * 0.055;
+      }
+      float particulate = (noise(blobUV * 6.5 + T * 0.01) - 0.5) * 0.008;
+      liquid += particulate;
+    }
+    float liquidEdgeShadow = smoothstep(0.30, 0.975, abs(nx));
+    liquid *= 1.0 - liquidEdgeShadow * 0.07;
+    col = mix(col, liquid, innerBottleMask);
+    float yMask = smoothstep(lampBottom + 0.02, lampBottom + 0.12, uv.y) * smoothstep(lampTop - 0.01, lampTop - 0.13, uv.y);
+    float leftSoft = exp(-pow((nx + 0.695 + highlightBend * 0.18 + imperfection * 0.16) * 24.0, 2.0)) * yMask;
+    float leftRazor = exp(-pow((nx + 0.560 + highlightBend * 0.10 + imperfection * 0.12) * 185.0, 2.0)) * yMask;
+    float leftGhost = exp(-pow((nx + 0.620 + highlightBend * 0.16 + imperfection * 0.16) * 62.0, 2.0)) * yMask;
+    float centerSoft = exp(-pow((nx + 0.16 + highlightBend * 0.08 + imperfection * 0.08) * 20.0, 2.0)) * yMask;
+    float darkRef = exp(-pow((nx + 0.34 + highlightBend * 0.08 + imperfection * 0.12) * 18.0, 2.0)) * yMask;
+    float rightSoft = exp(-pow((nx - 0.60 - highlightBend * 0.10 + imperfection * 0.12) * 34.0, 2.0)) * yMask;
+    float rightRim = exp(-pow((nx - 0.885 - highlightBend * 0.04 + imperfection * 0.08) * 96.0, 2.0)) * yMask;
+    float edgeSpec = pow(saturate(abs(nx)), 11.4);
+    float bottomBand = exp(-pow((uv.y - lampBottom - 0.008) * (52.0 / feather), 2.0)) * center;
+    float rimDark = smoothstep(0.72, 0.989, abs(nx));
+    float fresnelGlass = pow(saturate(abs(nx)), 4.2);
+    float outerEdge = smoothstep(bottleR, bottleR - 0.00065, abs(uv.x));
+    float outerShoulder = smoothstep(bottleR - 0.0038, bottleR - 0.0014, abs(uv.x)) * (1.0 - outerEdge);
+    float innerLine = smoothstep(innerBottleR, innerBottleR - 0.00045, abs(uv.x));
+    float innerShoulder = smoothstep(innerBottleR - 0.0032, innerBottleR - 0.0012, abs(uv.x)) * (1.0 - innerLine);
+    vec3 glassFX = vec3(0.0);
+    glassFX += vec3(0.82, 0.88, 0.96) * leftSoft * 0.018;
+    glassFX += vec3(1.0) * leftRazor * 0.050;
+    glassFX += vec3(0.68, 0.74, 0.82) * leftGhost * 0.010;
+    glassFX += vec3(0.18, 0.22, 0.28) * centerSoft * 0.004;
+    glassFX -= vec3(0.040, 0.050, 0.065) * darkRef * 0.08;
+    glassFX += vec3(0.12, 0.15, 0.20) * rightSoft * 0.016;
+    glassFX += vec3(0.82, 0.87, 0.95) * rightRim * 0.010;
+    glassFX += vec3(0.30, 0.38, 0.48) * edgeSpec * 0.024;
+    glassFX += vec3(0.14, 0.18, 0.24) * fresnelGlass * 0.020;
+    glassFX += glowTint * bottomBand * 0.008;
+    glassFX += vec3(0.84, 0.89, 0.96) * outerEdge * 0.032;
+    glassFX += vec3(0.20, 0.25, 0.33) * outerShoulder * 0.020;
+    glassFX -= vec3(0.018, 0.024, 0.032) * innerShoulder * 0.010;
+    glassFX += vec3(0.050, 0.072, 0.11) * innerLine * 0.016;
+    float neckGloss = exp(-pow((uv.y - lampTop + 0.02) * 62.0, 2.0)) * center * 0.0014;
+    glassFX += vec3(0.10, 0.13, 0.19) * neckGloss;
+    col *= 1.0 - rimDark * 0.046;
+    col += glassFX;
+  }
+
+  float baseBloom = exp(-pow(uv.x * (5.2 / feather), 2.0) - pow((uv.y + 0.34) * (7.2 / feather), 2.0));
+  col += glowTint * baseBloom * 0.07;
+
+  float glassFootGlow = exp(-pow(uv.x * (7.8 / feather), 2.0) - pow((uv.y - lampBottom + 0.008) * (48.0 / feather), 2.0));
+  col += hotTint * glassFootGlow * 0.030;
+
+  float lampMask = 0.0;
+  lampMask += bottleMask;
+  lampMask += inUpperBase ? 1.0 : 0.0;
+  lampMask += inLowerBase ? 1.0 : 0.0;
+  lampMask += inCap ? 1.0 : 0.0;
+  lampMask = saturate(lampMask);
+
+  // Composite onto a TRANSPARENT background: the lamp itself is opaque,
+  // everything else is just the warm light it emits, fading to clear.
+  vec3 outc;
+  float alpha;
+  if (lampMask > 0.5){
+    outc = col;
+    alpha = 1.0;
+  } else {
+    vec3 glow = glowTint * (bulbGlow * 0.16 + baseBloom * 0.07) + hotTint * glassFootGlow * 0.030;
+    glow += vec3(0.06, 0.035, 0.012) * exp(-pow(uv.x * 1.85, 2.0) - pow((uv.y + 0.15) * 1.65, 2.0)) * 0.20;
+    outc = glow;
+    float m = max(max(glow.r, glow.g), glow.b);
+    alpha = saturate(m * 3.2);
+  }
+
+  outc = outc / (outc + 0.68);
+  outc = pow(outc, vec3(0.92));
+  outc = pow(outc, vec3(1.0 / 2.2));
+
+  O = vec4(outc, alpha);
+}
+<\/script>
+<script>
+(function(){
+  var doc = document;
+  var canvas = doc.querySelector('.tel-lava-canvas');
+  var gl = canvas.getContext('webgl2', { antialias:true, alpha:true, premultipliedAlpha:false });
+  if(!gl){ canvas.parentNode.style.color = '#999'; return; }
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function compile(src, type){
+    var sh = gl.createShader(type);
+    gl.shaderSource(sh, src.trim());
+    gl.compileShader(sh);
+    if(!gl.getShaderParameter(sh, gl.COMPILE_STATUS)){ throw new Error(gl.getShaderInfoLog(sh) || 'compile failed'); }
+    return sh;
+  }
+  var prog = gl.createProgram();
+  gl.attachShader(prog, compile(doc.getElementById('tel-lava-vs').textContent, gl.VERTEX_SHADER));
+  gl.attachShader(prog, compile(doc.getElementById('tel-lava-fs').textContent, gl.FRAGMENT_SHADER));
+  gl.linkProgram(prog);
+  if(!gl.getProgramParameter(prog, gl.LINK_STATUS)){ throw new Error(gl.getProgramInfoLog(prog) || 'link failed'); }
+  gl.useProgram(prog);
+  var buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  var pLoc = gl.getAttribLocation(prog, 'p');
+  gl.enableVertexAttribArray(pLoc);
+  gl.vertexAttribPointer(pLoc, 2, gl.FLOAT, false, 0, 0);
+  var tLoc = gl.getUniformLocation(prog, 'T');
+  var rLoc = gl.getUniformLocation(prog, 'R');
+  function resize(){
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = canvas.clientWidth || 232, h = canvas.clientHeight || 296;
+    canvas.width = Math.floor(w * dpr);
+    canvas.height = Math.floor(h * dpr);
+    gl.viewport(0, 0, canvas.width, canvas.height);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+  gl.clearColor(0, 0, 0, 0);
+  function draw(tMs){
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.uniform1f(tLoc, tMs * 0.001);
+    gl.uniform2f(rLoc, canvas.width, canvas.height);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  }
+  if(reduce){
+    draw(8000);
+  } else {
+    var loop = function(t){ draw(t); requestAnimationFrame(loop); };
+    requestAnimationFrame(loop);
+  }
+})();
+<\/script>`
 }
 ];
 

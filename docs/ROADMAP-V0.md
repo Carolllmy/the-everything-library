@@ -15,7 +15,9 @@ There are two top-level types of things in the library:
 
 **Decorations** — animated, purely visual elements with a transparent background. They float over whatever background color is on the page, making any site more visually alive. Examples: wind dancers (the wacky waving inflatable tube men outside car dealerships), animated mascots, floating particles, ambient looping effects. Decorations never require user interaction — they just exist and look fun.
 
-The first decoration, **Wind Dancer**, is built as a kinematic chain: the body is a vertical stack of nested segments, each rotating around its joint with a staggered animation delay so a whip travels up the tube and the upper body folds over and snaps back — the actual physics of an air dancer in a blower's airstream, not a rigid mascot. (An earlier "Balloon Guy" attempt was a rigid head+body+arms figure and was rejected for not moving like a real one.)
+Decorations are held to a **photorealistic bar**, set by the **Lava Lamp**: a single real-time WebGL2 fragment shader (signed-distance metaball wax, analytic refracting glass, brushed-metal base, emitted glow) ported from Carol's personal-site lava-lamp project. It was adapted for the library by moving the GLSL into `<script type="x-shader">` blocks (read via `textContent`, so the snippet stays free of backticks/`${}`), hardcoding the tuned defaults, and **modifying the shader to output an alpha channel** — opaque on the lamp, a soft warm glow around it, transparent everywhere else — so the photorealistic lamp floats on any page color. Verified floating on both dark and light backgrounds.
+
+The **Wind Dancer** (the wacky waving inflatable tube man / air dancer) is the other decoration. An early "Balloon Guy" was a rigid head+body+arms figure and was rejected; the current build is being brought up to the Lava Lamp's shader-rendered photorealistic bar.
 
 The reference point for quality and feel is the Framer Marketplace (framer.com/marketplace). The site's information architecture is deliberately much simpler than Framer's: a browse feed of widget tiles, a natural-language search bar, and a private request pipeline for widgets that don't exist yet.
 
@@ -78,6 +80,7 @@ Each widget has: `id`, `cat` (category), `name`, `desc`, `tags` (search vocabula
 | Skeleton Shimmer | loaders | Classic skeleton placeholder with sliding shimmer |
 | Progress Ring | loaders | SVG ring sweeping to target with counting label |
 | **Wind Dancer** | **decorations** | **Wacky waving inflatable tube man (air dancer) — segmented-spine whip, pure CSS, transparent background** |
+| **Lava Lamp** | **decorations** | **Photorealistic real-time WebGL2 shader — metaball wax, refracting glass, brushed-metal base; floats on a transparent background** |
 
 Snippet conventions: class names are prefixed `tel-` to avoid collisions; no external assets or libraries; no backticks or `${}` in widget JS (snippets live inside template literals); `</script>` inside snippets is escaped as `<\/script>`; each demo wrapper centers itself with a ~200–300px min-height. **Additional rule for decorations:** `background:transparent` on the demo container — never any background color — so the decoration floats naturally on any page background.
 
@@ -107,7 +110,7 @@ V0 is the complete public launch on Carol's personal website. No V1/V2 split yet
 ### 7.1 Content & tiles
 - [x] Decide tile thumbnail treatment — **live iframe previews per tile**, lazy-loaded via IntersectionObserver (srcdoc set only when a tile nears the viewport), sandboxed, pointer-events disabled so the tile stays clickable
 - [x] Fill all tiles in the masonry feed accordingly
-- [x] Grow the library beyond the initial 10 — now **21 items**: added Shimmer Button, Border Beam Button, Scramble Text, Wave Text, Glass Card, Star Rating, Bubble Slider, plus **Loaders** (Orbit Loader, Skeleton Shimmer, Progress Ring), plus **Decorations** (Wind Dancer)
+- [x] Grow the library beyond the initial 10 — now **22 items**: added Shimmer Button, Border Beam Button, Scramble Text, Wave Text, Glass Card, Star Rating, Bubble Slider, plus **Loaders** (Orbit Loader, Skeleton Shimmer, Progress Ring), plus **Decorations** (Wind Dancer, Lava Lamp)
 - [x] Per-widget usage notes — optional `notes` field rendered as a "Customize:" line in the modal (magnetic, typewriter, count-up, scramble, wave, star rating, bubble slider, progress ring)
 
 ### 7.2 Site polish
