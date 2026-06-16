@@ -977,86 +977,235 @@ document.querySelectorAll('.tel-tilt').forEach(function(card){
 {
   id:"wind-dancer", cat:"decorations",
   name:"Wind Dancer",
-  desc:"A wacky waving inflatable tube man — the air dancer you see outside car dealerships. Whips, folds and flails on a transparent background, so it floats on any site.",
-  notes:"This is a <strong>wind dancer (air dancer)</strong>: the body is a kinematic chain of segments, each rotating around its joint with a staggered delay so a whip travels up the tube — exactly how a real one bends and snaps in the blower's air. Recolor by changing the two vars <code>--c1</code> and <code>--c2</code> on <code>.tel-wd</code>. Scale it with <code>transform:scale()</code> on <code>.tel-wd-demo</code>. <code>background:transparent</code> means it floats over any page color.",
-  tags:["decoration","wind dancer","air dancer","sky dancer","tube man","tubeman","balloon guy","inflatable","wacky waving inflatable arm flailing tube man","dancing","flailing","waving","whip","car dealership","mascot","fun","silly","animated","transparent","party","advertising","blower"],
+  desc:"A photorealistic wacky waving inflatable tube man — the air dancer outside car dealerships — rendered in real time with a WebGL2 shader. The whole body is one whipping, folding tube of glossy nylon. Floats on a transparent background.",
+  notes:"This is a single real-time <strong>WebGL2 fragment shader</strong>: the body is an animated signed-distance capsule chain (a kinematic spine where a whip wave travels up and compounds, exactly like a real one snapping in the blower's air), shaded as glossy inflated nylon with a specular sheen, translucent back-lit edges and an anti-aliased silhouette. It composites on a transparent background with a soft contact shadow, so it floats on any page. Recolor via <code>C_BOT</code>/<code>C_TOP</code> at the top of the shader. Honors <code>prefers-reduced-motion</code> by holding a still pose. Size it with <code>.tel-wd-stage</code>.",
+  tags:["decoration","wind dancer","air dancer","sky dancer","tube man","tubeman","balloon guy","inflatable","wacky waving inflatable arm flailing tube man","dancing","flailing","waving","whip","car dealership","mascot","fun","silly","animated","transparent","party","advertising","webgl","shader","photorealistic"],
   code:`<div class="tel-wd-demo">
-  <div class="tel-wd">
-    <div class="tel-wd-s tel-wd-s1">
-      <div class="tel-wd-s tel-wd-s2">
-        <div class="tel-wd-s tel-wd-s3">
-          <div class="tel-wd-s tel-wd-s4">
-            <div class="tel-wd-s tel-wd-s5">
-              <div class="tel-wd-s tel-wd-s6">
-                <div class="tel-wd-arm tel-wd-arm-l"><span class="tel-wd-fore"></span></div>
-                <div class="tel-wd-arm tel-wd-arm-r"><span class="tel-wd-fore"></span></div>
-                <div class="tel-wd-head">
-                  <span class="tel-wd-hair tel-wd-hair-1"></span>
-                  <span class="tel-wd-hair tel-wd-hair-2"></span>
-                  <span class="tel-wd-hair tel-wd-hair-3"></span>
-                  <span class="tel-wd-eye tel-wd-eye-l"></span>
-                  <span class="tel-wd-eye tel-wd-eye-r"></span>
-                  <span class="tel-wd-mouth"></span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+  <div class="tel-wd-stage">
+    <canvas class="tel-wd-canvas"></canvas>
   </div>
 </div>
 <style>
-.tel-wd-demo{display:flex;align-items:flex-end;justify-content:center;min-height:300px;background:transparent;padding-bottom:14px}
-/* base / blower the tube is anchored to */
-.tel-wd{--c1:#ff7e3d;--c2:#ff2e63;position:relative;width:42px;height:13px;border-radius:7px;
-  background:radial-gradient(ellipse at 50% 30%,#4a4a4a,#101010);box-shadow:0 7px 16px rgba(0,0,0,.4)}
-/* every spine segment: rotates around its bottom joint; rotations compound up the nested chain */
-.tel-wd-s{position:absolute;bottom:calc(100% - 10px);left:50%;width:var(--w);height:36px;
-  margin-left:calc(var(--w) / -2);border-radius:13px;transform-origin:50% calc(100% - 10px);
-  background:linear-gradient(105deg,rgba(255,255,255,.5),rgba(255,255,255,0) 42%),linear-gradient(180deg,var(--c1),var(--c2));
-  animation:tel-wd-whip 1.25s ease-in-out infinite;animation-delay:var(--delay,0s);will-change:transform}
-/* amplitude grows toward the top, delay staggers so the whip travels upward */
-.tel-wd-s1{--w:33px;--a:7deg;--delay:0s}
-.tel-wd-s2{--w:32px;--a:10deg;--delay:-.07s}
-.tel-wd-s3{--w:31px;--a:13deg;--delay:-.14s}
-.tel-wd-s4{--w:29px;--a:17deg;--delay:-.21s}
-.tel-wd-s5{--w:27px;--a:22deg;--delay:-.28s}
-.tel-wd-s6{--w:25px;--a:27deg;--delay:-.35s}
-@keyframes tel-wd-whip{
-  0%{transform:rotate(calc(var(--a) * -1))}
-  27%{transform:rotate(calc(var(--a) * 0.5))}
-  50%{transform:rotate(var(--a))}
-  73%{transform:rotate(calc(var(--a) * -0.3))}
-  100%{transform:rotate(calc(var(--a) * -1))}
+.tel-wd-demo{display:flex;align-items:center;justify-content:center;min-height:300px;background:transparent}
+.tel-wd-stage{position:relative;width:268px;height:300px}
+.tel-wd-canvas{width:100%;height:100%;display:block}
+</style>
+<script type="x-shader/x-vertex" id="tel-wd-vs">#version 300 es
+in vec2 p;
+void main(){ gl_Position = vec4(p, 0.0, 1.0); }
+<\/script>
+<script type="x-shader/x-fragment" id="tel-wd-fs">#version 300 es
+precision highp float;
+out vec4 O;
+uniform float T;
+uniform vec2 R;
+
+#define ZOOM 2.05
+#define YBOT -0.66
+#define NB 10
+#define C_BOT vec3(0.88, 0.07, 0.09)
+#define C_TOP vec3(1.0, 0.46, 0.06)
+
+float saturate(float x){ return clamp(x, 0.0, 1.0); }
+
+struct Hit { float d; vec2 a; vec2 b; float h; float ra; float rb; int part; float s; };
+
+Hit segHit(vec2 p, vec2 a, vec2 b, float ra, float rb, int part, float sA, float sB){
+  vec2 pa = p - a, ba = b - a;
+  float bb = dot(ba, ba);
+  float h = bb > 1e-8 ? clamp(dot(pa, ba) / bb, 0.0, 1.0) : 0.0;
+  float dist = length(pa - ba * h);
+  float r = mix(ra, rb, h);
+  Hit H;
+  H.d = dist - r; H.a = a; H.b = b; H.h = h; H.ra = ra; H.rb = rb; H.part = part; H.s = mix(sA, sB, h);
+  return H;
 }
-/* head rides the top segment */
-.tel-wd-head{position:absolute;bottom:calc(100% - 3px);left:50%;width:46px;height:46px;margin-left:-23px;
-  border-radius:50%;background:linear-gradient(105deg,rgba(255,255,255,.55),rgba(255,255,255,0) 45%),linear-gradient(180deg,var(--c1),var(--c2))}
-.tel-wd-eye{position:absolute;top:15px;width:11px;height:13px;border-radius:50%;background:#fff}
-.tel-wd-eye::after{content:"";position:absolute;left:50%;top:56%;transform:translate(-50%,-50%);width:5px;height:6px;border-radius:50%;background:#1a0a12}
-.tel-wd-eye-l{left:8px}
-.tel-wd-eye-r{right:8px}
-.tel-wd-mouth{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:22px;height:12px;background:#1a0a12;border-radius:3px 3px 16px 16px}
-/* fluttering top streamers */
-.tel-wd-hair{position:absolute;bottom:calc(100% - 3px);left:50%;width:4px;height:20px;border-radius:3px;
-  background:var(--c1);transform-origin:50% 100%}
-.tel-wd-hair-1{margin-left:-10px;animation:tel-wd-hair .45s ease-in-out infinite}
-.tel-wd-hair-2{margin-left:-2px;height:25px;animation:tel-wd-hair .52s ease-in-out infinite reverse}
-.tel-wd-hair-3{margin-left:6px;animation:tel-wd-hair .4s ease-in-out infinite}
-@keyframes tel-wd-hair{0%,100%{transform:rotate(-38deg)}50%{transform:rotate(38deg)}}
-/* arms flail fast and independently from the shoulders */
-.tel-wd-arm{position:absolute;top:-2px;width:11px;height:38px;border-radius:8px;transform-origin:50% 4px;
-  background:linear-gradient(105deg,rgba(255,255,255,.45),rgba(255,255,255,0) 45%),linear-gradient(180deg,var(--c1),var(--c2));will-change:transform}
-.tel-wd-arm-l{left:-7px;animation:tel-wd-arm-l .52s ease-in-out infinite}
-.tel-wd-arm-r{right:-7px;animation:tel-wd-arm-r .6s ease-in-out infinite}
-@keyframes tel-wd-arm-l{0%{transform:rotate(38deg)}25%{transform:rotate(150deg)}50%{transform:rotate(72deg)}75%{transform:rotate(162deg)}100%{transform:rotate(38deg)}}
-@keyframes tel-wd-arm-r{0%{transform:rotate(-38deg)}25%{transform:rotate(-152deg)}50%{transform:rotate(-66deg)}75%{transform:rotate(-150deg)}100%{transform:rotate(-38deg)}}
-.tel-wd-fore{position:absolute;top:calc(100% - 4px);left:50%;width:9px;height:30px;margin-left:-4.5px;border-radius:7px;
-  transform-origin:50% 4px;background:linear-gradient(105deg,rgba(255,255,255,.4),rgba(255,255,255,0) 45%),linear-gradient(180deg,var(--c1),var(--c2));
-  animation:tel-wd-fore .38s ease-in-out infinite;will-change:transform}
-@keyframes tel-wd-fore{0%,100%{transform:rotate(-58deg)}50%{transform:rotate(58deg)}}
-</style>`
+
+Hit minH(Hit x, Hit y){ if (x.d < y.d) return x; return y; }
+
+void main(){
+  vec2 uv = (gl_FragCoord.xy - 0.5 * R) / R.y;
+  uv *= ZOOM;
+
+  float L = 0.135;
+  float rBot = 0.082, rTop = 0.058;
+
+  // ---- build the whipping spine (kinematic chain) ----
+  float baseLean = 0.18 * sin(T * 0.6) + 0.05 * sin(T * 1.7);
+  vec2 P[NB + 1];
+  P[0] = vec2(0.0, YBOT);
+  float ang = baseLean;
+  for (int i = 0; i < NB; i++){
+    float fi = float(i);
+    float amp = mix(0.05, 0.34, fi / float(NB - 1));
+    float delta = amp * sin(T * 2.3 - fi * 0.5) + 0.04 * sin(T * 1.3 + fi);
+    ang += delta;
+    P[i + 1] = P[i] + L * vec2(sin(ang), cos(ang));
+  }
+
+  // head sits just past the top point, oriented along the top segment
+  vec2 topDir = normalize(P[NB] - P[NB - 1]);
+  vec2 headC = P[NB] + topDir * 0.080;
+  float rHead = 0.114;
+
+  // shoulders branch from a point ~80% up the body
+  vec2 shoulder = P[8];
+  float shAng = atan(P[8].x - P[7].x, P[8].y - P[7].y);
+
+  // left arm chain — long and flailing
+  vec2 AL[4]; AL[0] = shoulder;
+  float al = shAng - 1.35;
+  for (int j = 0; j < 3; j++){
+    float fj = float(j);
+    al += (0.45 + 0.30 * fj) * sin(T * 4.2 - fj * 0.7 + 1.7);
+    AL[j + 1] = AL[j] + (0.155 - 0.018 * fj) * vec2(sin(al), cos(al));
+  }
+  // right arm chain — long and flailing
+  vec2 AR[4]; AR[0] = shoulder;
+  float ar = shAng + 1.35;
+  for (int j = 0; j < 3; j++){
+    float fj = float(j);
+    ar += (0.45 + 0.30 * fj) * sin(T * 3.7 + fj * 0.8 - 0.6);
+    AR[j + 1] = AR[j] + (0.155 - 0.018 * fj) * vec2(sin(ar), cos(ar));
+  }
+
+  // ---- nearest-surface distance over every capsule ----
+  Hit best; best.d = 1e9; best.part = -1; best.s = 0.0;
+  best.a = vec2(0.0); best.b = vec2(0.0, 1.0); best.h = 0.0; best.ra = 1.0; best.rb = 1.0;
+
+  for (int i = 0; i < NB; i++){
+    float r0 = mix(rBot, rTop, float(i) / float(NB));
+    float r1 = mix(rBot, rTop, float(i + 1) / float(NB));
+    best = minH(best, segHit(uv, P[i], P[i + 1], r0, r1, 0, float(i) / float(NB), float(i + 1) / float(NB)));
+  }
+  best = minH(best, segHit(uv, P[NB], headC, rTop, rHead, 1, 1.0, 1.0));
+  for (int j = 0; j < 3; j++){
+    float r0 = 0.056 - 0.007 * float(j);
+    float r1 = 0.056 - 0.007 * float(j + 1);
+    best = minH(best, segHit(uv, AL[j], AL[j + 1], r0, r1, 2, 0.80, 0.98));
+    best = minH(best, segHit(uv, AR[j], AR[j + 1], r0, r1, 2, 0.80, 0.98));
+  }
+  // base / blower
+  best = minH(best, segHit(uv, vec2(-0.055, YBOT - 0.02), vec2(0.055, YBOT - 0.02), 0.058, 0.058, 3, 0.0, 0.0));
+
+  // ---- shade ----
+  vec2 dir = normalize(best.b - best.a);
+  vec2 nrm = vec2(-dir.y, dir.x);
+  float r = mix(best.ra, best.rb, best.h);
+  float nx = clamp(dot(uv - best.a, nrm) / max(r, 1e-4), -1.0, 1.0);
+  float cyl = sqrt(saturate(1.0 - nx * nx));
+
+  vec3 c;
+  if (best.part == 3){
+    // matte dark blower base
+    vec3 m = mix(vec3(0.05, 0.05, 0.06), vec3(0.18, 0.18, 0.20), cyl);
+    m += vec3(1.0) * exp(-pow((nx + 0.4) * 6.0, 2.0)) * 0.06;
+    c = m;
+  } else {
+    vec3 base = mix(C_BOT, C_TOP, saturate(best.s));
+    if (best.part == 2) base = mix(C_BOT, C_TOP, 0.78);
+    float ndl = saturate(0.34 + 0.72 * cyl);
+    c = base * ndl;
+    c *= 1.0 - 0.14 * exp(-pow((nx - 0.18) * 2.4, 2.0));           // belly occlusion
+    float spc = exp(-pow((nx + 0.46) * 30.0, 2.0)) * 0.9
+              + exp(-pow((nx + 0.48) * 9.0, 2.0)) * 0.35;          // glossy sheen
+    c += vec3(1.0, 0.96, 0.9) * spc * 0.55;
+    float edge = pow(saturate(abs(nx)), 2.6);
+    c += mix(base, vec3(1.0, 0.62, 0.22), 0.55) * edge * 0.42;     // translucent back-lit edge
+    float fr = smoothstep(0.80, 1.0, abs(nx));
+    c += base * fr * 0.18;                                          // silhouette fresnel
+    c *= 1.0 - 0.045 * smoothstep(0.4, 1.0, abs(sin(best.s * 52.0))) * (0.5 + 0.5 * cyl); // seam ribs
+
+    // face on the head
+    if (best.part == 1){
+      vec2 hUp = topDir;
+      vec2 hRight = vec2(hUp.y, -hUp.x);
+      vec2 hp = uv - headC;
+      float fx = dot(hp, hRight);
+      float fy = dot(hp, hUp);
+      float eL = length(vec2(fx + 0.040, fy - 0.020) / vec2(0.020, 0.026));
+      float eR = length(vec2(fx - 0.040, fy - 0.020) / vec2(0.020, 0.026));
+      float eyeWhite = smoothstep(1.02, 0.88, min(eL, eR));
+      c = mix(c, vec3(0.98, 0.98, 1.0), eyeWhite);
+      float pL = length(vec2(fx + 0.040, fy - 0.018) / vec2(0.009, 0.011));
+      float pR = length(vec2(fx - 0.040, fy - 0.018) / vec2(0.009, 0.011));
+      float pupil = smoothstep(1.05, 0.7, min(pL, pR));
+      c = mix(c, vec3(0.05, 0.04, 0.05), pupil);
+      float mo = length(vec2(fx, (fy + 0.034)) / vec2(0.042, 0.05));
+      float mouth = smoothstep(1.02, 0.86, mo) * smoothstep(0.02, -0.01, fy + 0.005);
+      c = mix(c, vec3(0.10, 0.02, 0.03), mouth);
+    }
+  }
+
+  // gentle filmic compression so the sheen doesn't clip
+  c = c / (c + 0.85) * 1.6;
+
+  float px = ZOOM / R.y;
+  float alpha = smoothstep(px * 1.3, -px * 1.3, best.d);
+
+  // soft contact shadow on the ground
+  float sh = exp(-pow(uv.x * 3.0, 2.0) - pow((uv.y - (YBOT - 0.03)) * 16.0, 2.0)) * 0.22;
+  float shadowA = sh * (1.0 - alpha);
+
+  vec3 outc = c * alpha;
+  float A = max(alpha, shadowA);
+  if (alpha < 0.001) outc = vec3(0.0);
+
+  O = vec4(outc, A);
+}
+<\/script>
+<script>
+(function(){
+  var doc = document;
+  var canvas = doc.querySelector('.tel-wd-canvas');
+  var gl = canvas.getContext('webgl2', { antialias:true, alpha:true, premultipliedAlpha:true });
+  if(!gl){ return; }
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function compile(src, type){
+    var sh = gl.createShader(type);
+    gl.shaderSource(sh, src.trim());
+    gl.compileShader(sh);
+    if(!gl.getShaderParameter(sh, gl.COMPILE_STATUS)){ throw new Error(gl.getShaderInfoLog(sh) || 'compile failed'); }
+    return sh;
+  }
+  var prog = gl.createProgram();
+  gl.attachShader(prog, compile(doc.getElementById('tel-wd-vs').textContent, gl.VERTEX_SHADER));
+  gl.attachShader(prog, compile(doc.getElementById('tel-wd-fs').textContent, gl.FRAGMENT_SHADER));
+  gl.linkProgram(prog);
+  if(!gl.getProgramParameter(prog, gl.LINK_STATUS)){ throw new Error(gl.getProgramInfoLog(prog) || 'link failed'); }
+  gl.useProgram(prog);
+  var buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  var pLoc = gl.getAttribLocation(prog, 'p');
+  gl.enableVertexAttribArray(pLoc);
+  gl.vertexAttribPointer(pLoc, 2, gl.FLOAT, false, 0, 0);
+  var tLoc = gl.getUniformLocation(prog, 'T');
+  var rLoc = gl.getUniformLocation(prog, 'R');
+  function resize(){
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = canvas.clientWidth || 268, h = canvas.clientHeight || 300;
+    canvas.width = Math.floor(w * dpr);
+    canvas.height = Math.floor(h * dpr);
+    gl.viewport(0, 0, canvas.width, canvas.height);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+  gl.clearColor(0, 0, 0, 0);
+  function draw(tMs){
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.uniform1f(tLoc, tMs * 0.001);
+    gl.uniform2f(rLoc, canvas.width, canvas.height);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  }
+  if(reduce){
+    draw(1400);
+  } else {
+    var loop = function(t){ draw(t); requestAnimationFrame(loop); };
+    requestAnimationFrame(loop);
+  }
+})();
+<\/script>`
 },
 {
   id:"lava-lamp", cat:"decorations",

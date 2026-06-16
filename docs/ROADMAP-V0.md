@@ -17,7 +17,7 @@ There are two top-level types of things in the library:
 
 Decorations are held to a **photorealistic bar**, set by the **Lava Lamp**: a single real-time WebGL2 fragment shader (signed-distance metaball wax, analytic refracting glass, brushed-metal base, emitted glow) ported from Carol's personal-site lava-lamp project. It was adapted for the library by moving the GLSL into `<script type="x-shader">` blocks (read via `textContent`, so the snippet stays free of backticks/`${}`), hardcoding the tuned defaults, and **modifying the shader to output an alpha channel** — opaque on the lamp, a soft warm glow around it, transparent everywhere else — so the photorealistic lamp floats on any page color. Verified floating on both dark and light backgrounds.
 
-The **Wind Dancer** (the wacky waving inflatable tube man / air dancer) is the other decoration. An early "Balloon Guy" was a rigid head+body+arms figure and was rejected; the current build is being brought up to the Lava Lamp's shader-rendered photorealistic bar.
+The **Wind Dancer** (the wacky waving inflatable tube man / air dancer) is the other decoration, and was rebuilt to the same bar. An early "Balloon Guy" was a rigid head+body+arms figure (rejected), then a CSS nested-rotation version (closer, but flat). The current build is a WebGL2 fragment shader: the body is an animated signed-distance **capsule chain** (a kinematic spine where each joint's bend compounds and a whip wave travels up — the real air-dancer fold-and-snap), shaded as glossy inflated nylon (cylindrical sheen, specular streak, translucent back-lit edges) with an anti-aliased silhouette, long flailing arms, a face, a blower base and a soft contact shadow — all composited on a transparent background. Verified floating on light and dark.
 
 The reference point for quality and feel is the Framer Marketplace (framer.com/marketplace). The site's information architecture is deliberately much simpler than Framer's: a browse feed of widget tiles, a natural-language search bar, and a private request pipeline for widgets that don't exist yet.
 
@@ -79,7 +79,7 @@ Each widget has: `id`, `cat` (category), `name`, `desc`, `tags` (search vocabula
 | Orbit Loader | loaders | Three dots orbiting in formation |
 | Skeleton Shimmer | loaders | Classic skeleton placeholder with sliding shimmer |
 | Progress Ring | loaders | SVG ring sweeping to target with counting label |
-| **Wind Dancer** | **decorations** | **Wacky waving inflatable tube man (air dancer) — segmented-spine whip, pure CSS, transparent background** |
+| **Wind Dancer** | **decorations** | **Wacky waving inflatable tube man (air dancer) — real-time WebGL2 shader: animated capsule-chain spine, glossy-nylon shading, flailing arms; floats on a transparent background** |
 | **Lava Lamp** | **decorations** | **Photorealistic real-time WebGL2 shader — metaball wax, refracting glass, brushed-metal base; floats on a transparent background** |
 
 Snippet conventions: class names are prefixed `tel-` to avoid collisions; no external assets or libraries; no backticks or `${}` in widget JS (snippets live inside template literals); `</script>` inside snippets is escaped as `<\/script>`; each demo wrapper centers itself with a ~200–300px min-height. **Additional rule for decorations:** `background:transparent` on the demo container — never any background color — so the decoration floats naturally on any page background.
